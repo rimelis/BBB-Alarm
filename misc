@@ -1,0 +1,8 @@
+cat /sys/devices/platform/bone_capemgr/slots
+
+cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins
+
+cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pingroups
+
+dmesg | tail
+
