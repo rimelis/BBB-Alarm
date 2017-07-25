@@ -137,7 +137,7 @@ if __name__ == '__main__':
   killer = GracefulKiller()
   threads = []
 
-  thread = ProcessGPIOThread("Garazas","alarm_in_3", "gpio7", "ToggleGarazas")
+  thread = ProcessGPIOThread("Garazas","alarm_in_3", "gpio72", "ToggleGarazas")
   threads.append(thread)
   thread = ProcessGPIOThread("VartaiPultelis", "alarm_in_5", "gpio117", "ToggleVartai")
   threads.append(thread)
