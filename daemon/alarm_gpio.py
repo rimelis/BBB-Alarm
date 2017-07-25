@@ -7,7 +7,7 @@ import sys
 import logging
 import logging.handlers
 import signal
-import configparser 
+import configparser
 
 
 # Defaults
@@ -47,7 +47,7 @@ class DaemonLogger(object):
                 if message.rstrip() != "":
                         self.logger.log(self.level, message.rstrip())
         def flush(self):
-            pass                        
+            pass
 
 # Replace stdout with logging to file at INFO level
 sys.stdout = DaemonLogger(logger, logging.INFO)
@@ -75,7 +75,7 @@ class ProcessGPIOThread (threading.Thread):
         logger.debug("Thread " + self.__title + ": IRQ count call= " + self.__irq)
         self.__prev_irq_count= None
         self.__curr_irq_count= None
-        self.__gpio= "cat /sys/class/gpio/" + p_gpio_name + "/value" 
+        self.__gpio= "cat /sys/class/gpio/" + p_gpio_name + "/value"
         logger.debug("Thread " + self.__title + ": GPIO value call= " + self.__gpio)
         self.__prev_value= None
         self.__curr_value= None
@@ -89,7 +89,7 @@ class ProcessGPIOThread (threading.Thread):
           cmd_out_array= cmd_out.split()
           self.__curr_irq_count= int(cmd_out_array[1])
           if self.__prev_irq_count != self.__curr_irq_count :
-            logger.debug("Thread " + self.__title + ": IRQ counter changed.")  
+            logger.debug("Thread " + self.__title + ": IRQ counter changed.")
             self.__prev_irq_count= self.__curr_irq_count
             self.__debounce_counter= 2
             while self.__debounce_counter > 0 :
@@ -97,11 +97,11 @@ class ProcessGPIOThread (threading.Thread):
               self.__curr_value= int(cmd_out)
               if self.__prev_value == self.__curr_value :
                 self.__debounce_counter -= 1
-              else :    
+              else :
                 self.__prev_value= self.__curr_value
                 self.__debounce_counter= 2
               time.sleep(0.1)
-            # Reiksme pasikeite    
+            # Reiksme pasikeite
             logger.info("Thread " + self.__title + ": value= " + str(self.__curr_value))
             logger.debug("Thread " + self.__title + ": calling " + \
                          self.__func_name + "(" + str(self.__curr_value) + ")")
@@ -111,27 +111,29 @@ class ProcessGPIOThread (threading.Thread):
     def SwitchOutput(self, p_gpio_name, p_value) :
       l_call= 'echo ' + str(p_value) + ' > /sys/class/gpio/' + p_gpio_name + '/value'
       logger.debug("Thread " + self.__title + ": SwitchOutput= " + l_call)
-      cmd_out= subprocess.check_call(l_call, shell=True)   
+      cmd_out= subprocess.check_call(l_call, shell=True)
 
 
-def TestSwitch(p_caller_obj, p_value) :
+def ToggleGarazas(p_caller_obj, p_value) :
   if p_value == 0 :
     l_value= 1
   else :
-    l_value= 0           
-  p_caller_obj.SwitchOutput("gpio26", l_value)
+    l_value= 0
+  p_caller_obj.SwitchOutput("gpio67", l_value)
 
-def TestSwitchFake(p_caller_obj, p_value) :
+def ToggleVartai(p_caller_obj, p_value) :
   if p_value == 0 :
     l_value= 1
   else :
-    l_value= 0           
-    
+    l_value= 0
+  p_caller_obj.SwitchOutput("gpio69", l_value)
+
+
 
 if __name__ == '__main__':
 
   logger.info("Initializing...")
-    
+
   killer = GracefulKiller()
   threads = []
 
@@ -143,7 +145,7 @@ if __name__ == '__main__':
   # Start new Threads
   for t in threads :
     t.start()
-    
+
   logger.info("Started.")
 
   while True:
@@ -153,5 +155,5 @@ if __name__ == '__main__':
       for t in threads :
         t.join()
       break
-        
+
   logger.info("Stopped.")

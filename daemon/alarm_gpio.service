@@ -1,0 +1,10 @@
+[Unit]
+Description=BBB-Alarm GPIO processor
+
+[Service]
+ExecStart=/home/debian/daemon/alarm_gpio.py
+StandardOutput=null
+
+[Install]
+WantedBy=multi-user.target
+Alias=alarm_gpio.service
