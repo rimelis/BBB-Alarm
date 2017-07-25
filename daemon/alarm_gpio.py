@@ -67,9 +67,9 @@ class GracefulKiller:
 exitFlag = 0
 
 class ProcessGPIOThread (threading.Thread):
-    def __init__(self, p_irq_name, p_gpio_name, p_func_name):
+    def __init__(self, p_name, p_irq_name, p_gpio_name, p_func_name):
         threading.Thread.__init__(self)
-        self.__title= p_irq_name + "(" + p_gpio_name + ")"
+        self.__title= p_name + " (" + p_irq_name + ":" + p_gpio_name + ")"
         logger.debug("Thread " + self.__title + ": Initializing.")
         self.__irq= "cat /proc/interrupts | grep " + p_irq_name
         logger.debug("Thread " + self.__title + ": IRQ count call= " + self.__irq)
@@ -137,9 +137,11 @@ if __name__ == '__main__':
   killer = GracefulKiller()
   threads = []
 
-  thread = ProcessGPIOThread("alarm_in_4", "gpio70", "TestSwitch")
+  thread = ProcessGPIOThread("Garazas","alarm_in_3", "gpio7", "ToggleGarazas")
   threads.append(thread)
-  thread = ProcessGPIOThread("alarm_in_6", "gpio72", "TestSwitchFake")
+  thread = ProcessGPIOThread("VartaiPultelis", "alarm_in_5", "gpio117", "ToggleVartai")
+  threads.append(thread)
+  thread = ProcessGPIOThread("VartaiTelefonas", "alarm_in_6", "gpio49", "ToggleVartai")
   threads.append(thread)
 
   # Start new Threads
