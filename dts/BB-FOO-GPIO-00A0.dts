@@ -1,0 +1,58 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "ti,beaglebone", "ti,beaglebone-black";
+
+    /* Identification */
+    part-number = "BB-FOO-GPIO";
+    version = "00A0";
+
+    /* Resources required */
+    exclusive-use =
+        "P9.27",        /* XXX */
+        "P9.23",        /* XXX */
+        "gpio3_19",     /* XXX */
+        "gpio1_17";     /* XXX */
+
+    fragment@0 {
+        target = <&am33xx_pinmux>;
+        __overlay__ {
+            foo_gpio_pins: pinmux_gpio_helper_pins {
+                pinctrl-single,pins = <
+                    0x1a4 0x0f      /* P9.27 GPIO3_19: MODE7 - OUTPUT */
+                    0x044 0x2f      /* P9.23 GPIO1_17: MODE7 - INPUT */
+                >;
+            };
+        };
+    };
+
+    fragment@1 {
+        target = <&ocp>;    /* On-chip Peripherals */
+        __overlay__ {
+
+            foo_gpio_helper {
+                compatible = "gpio-of-helper";
+                pinctrl-names = "default";
+                pinctrl-0 = <&foo_gpio_pins>;
+                status = "okay";
+
+                foo_test_output {
+                    gpio-name = "foo_test_output";
+                    gpio = <&gpio3 19 0x00>;            /* gpio4 => GPIO-3 */
+                    output;
+                    init-high;
+                };
+
+                foo_test_input {
+                    gpio-name = "foo_test_input";
+                    gpio = <&gpio1 17 0x00>;            /* gpio2 => GPIO-1 */
+                    input;
+                    count-rising-edge;
+                    count-falling-edge;
+                };
+            };
+        };
+    };
+};
+

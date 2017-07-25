@@ -1,0 +1,177 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "ti,beaglebone", "ti,beaglebone-black";
+
+    /* Identification */
+    part-number = "BB-ALARM";
+    version = "00A0";
+
+    /* Resources required */
+    exclusive-use =
+        "P8.46",        /* IN1 */
+        "P8.44",        /* IN2 */
+        "P8.43",        /* IN3 */
+        "P8.45",        /* IN4 */
+        "P9.25",        /* IN5 */
+        "P9.23",        /* IN6 */
+		"P8.11",        /* OUT1 */ 
+		"P8.12",        /* OUT2 */ 
+		"P8.13",        /* OUT3 */ 
+		"P8.14",        /* OUT4 */ 
+		"P8.7",         /* OUT5 */ 
+		"P8.8",         /* OUT6 */ 
+		"P8.9",         /* OUT7 */ 
+		"P8.10",        /* OUT8 */ 
+        "gpio2_7",     /* gpio71, IN1 */
+        "gpio2_9",     /* gpio73, IN2 */
+        "gpio2_8",     /* gpio72, IN3 */
+        "gpio2_6",     /* gpio70, IN4 */
+        "gpio3_21",    /* gpio117, IN5 */
+        "gpio1_17",    /* gpio49, IN6 */
+        "gpio1_13",    /* gpio45, OUT1 */
+        "gpio1_12",    /* gpio44, OUT2 */
+        "gpio0_23",    /* gpio23, OUT3 */
+        "gpio0_26",    /* gpio26, OUT4 */
+        "gpio2_2",     /* gpio66, OUT5 - REL1 */
+        "gpio2_3",     /* gpio67, OUT6 - REL2 */
+        "gpio2_5",     /* gpio69, OUT7 - REL3 */
+        "gpio2_4";     /* gpio68, OUT8 - REL4 */
+
+    fragment@0 {
+        target = <&am33xx_pinmux>;
+        __overlay__ {
+            alarm_gpio_pins: pinmux_alarm_gpio_pins {
+                pinctrl-single,pins = <
+                    0x0a4 0x37      /* IN1, P8.46 gpio2_7: MODE7 - INPUT, PULLUP */
+                    0x0ac 0x37      /* IN2, P8.44 gpio2_9: MODE7 - INPUT, PULLUP */
+                    0x0a8 0x37      /* IN3, P8.43 gpio2_8: MODE7 - INPUT, PULLUP */
+                    0x0a0 0x37      /* IN4, P8.45 gpio2_6: MODE7 - INPUT, PULLUP */
+                    0x1ac 0x37      /* IN5, P9.25 gpio3_21: MODE7 - INPUT, PULLUP */
+                    0x044 0x37      /* IN6, P9.23 gpio1_17: MODE7 - INPUT, PULLUP */
+                    0x034 0x0f      /* OUT1, P8.11 gpio1_13: MODE7 - OUTPUT */
+                    0x030 0x0f      /* OUT2, P8.12 gpio1_12: MODE7 - OUTPUT */
+                    0x024 0x0f      /* OUT3, P8.13 gpio0_23: MODE7 - OUTPUT */
+                    0x028 0x0f      /* OUT4, P8.14 gpio0_26: MODE7 - OUTPUT */
+                    0x090 0x0f      /* OUT5, P8.7 gpio2_2: MODE7 - OUTPUT */
+                    0x094 0x0f      /* OUT6, P8.8 gpio2_3: MODE7 - OUTPUT */
+                    0x09c 0x0f      /* OUT7, P8.9 gpio2_5: MODE7 - OUTPUT */
+                    0x098 0x0f      /* OUT8, P8.10 gpio2_4: MODE7 - OUTPUT */
+                >;
+            };
+        };
+    };
+
+    fragment@1 {
+        target = <&ocp>;    /* On-chip Peripherals */
+        __overlay__ {
+
+            alarm_gpio_helper {
+                compatible = "gpio-of-helper";
+                pinctrl-names = "default";
+                pinctrl-0 = <&alarm_gpio_pins>;
+                status = "okay";
+
+                alarm_in_1 {
+                    gpio-name = "alarm_in_1";
+                    gpio = <&gpio2 7 0x00>;
+                    input;
+					active-high;
+                    count-rising-edge;
+                    count-falling-edge;					
+                };
+                alarm_in_2 {
+                    gpio-name = "alarm_in_2";
+                    gpio = <&gpio2 9 0x00>;
+                    input;
+					active-high;
+                    count-rising-edge;
+                    count-falling-edge;					
+                };
+                alarm_in_3 {
+                    gpio-name = "alarm_in_3";
+                    gpio = <&gpio2 8 0x00>;
+                    input;
+					active-high;
+                    count-rising-edge;
+                    count-falling-edge;					
+                };
+                alarm_in_4 {
+                    gpio-name = "alarm_in_4";
+                    gpio = <&gpio2 6 0x00>;
+                    input;
+					active-high;
+                    count-rising-edge;
+                    count-falling-edge;					
+                };
+                alarm_in_5 {
+                    gpio-name = "alarm_in_5";
+                    gpio = <&gpio3 21 0x00>;
+                    input;
+					active-high;
+                    count-rising-edge;
+                    count-falling-edge;					
+                };
+                alarm_in_6 {
+                    gpio-name = "alarm_in_6";
+                    gpio = <&gpio1 17 0x00>;
+                    input;
+					active-high;
+                    count-rising-edge;
+                    count-falling-edge;					
+                };
+
+                alarm_out_1 {
+                    gpio-name = "alarm_out_1";
+                    gpio = <&gpio1 13 0x00>;
+                    output;
+                    init-low;
+				};
+                alarm_out_2 {
+                    gpio-name = "alarm_out_2";
+                    gpio = <&gpio1 12 0x00>;
+                    output;
+                    init-low;
+				};
+                alarm_out_3 {
+                    gpio-name = "alarm_out_3";
+                    gpio = <&gpio0 23 0x00>;
+                    output;
+                    init-low;
+				};
+                alarm_out_4 {
+                    gpio-name = "alarm_out_4";
+                    gpio = <&gpio0 26 0x00>;
+                    output;
+                    init-low;
+				};
+                alarm_out_5 {
+                    gpio-name = "alarm_out_5";
+                    gpio = <&gpio2 2 0x00>;
+                    output;
+                    init-low;
+				};
+                alarm_out_6 {
+                    gpio-name = "alarm_out_6";
+                    gpio = <&gpio2 3 0x00>;
+                    output;
+                    init-low;
+				};
+                alarm_out_7 {
+                    gpio-name = "alarm_out_7";
+                    gpio = <&gpio2 5 0x00>;
+                    output;
+                    init-low;
+				};
+                alarm_out_8 {
+                    gpio-name = "alarm_out_8";
+                    gpio = <&gpio2 4 0x00>;
+                    output;
+                    init-low;
+				};
+			};
+        };
+    };
+};
+

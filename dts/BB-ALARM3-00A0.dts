@@ -1,0 +1,103 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "ti,beaglebone", "ti,beaglebone-black";
+
+    /* Identification */
+    part-number = "BB-ALARM";
+    version = "00A0";
+
+    /* Resources required */
+    exclusive-use =
+        "P8.46",        /* XXX */
+        "P8.44",        /* XXX */
+        "P8.43",        /* XXX */
+        "P8.45",        /* XXX */
+        "P9.25",        /* XXX */
+        "P9.23",        /* XXX */
+        "gpio2_7",     /* gpio71 */
+        "gpio2_9",     /* gpio73 */
+        "gpio2_8",     /* gpio72 */
+        "gpio2_6",     /* gpio70 */
+        "gpio3_21",     /* gpio117 */
+        "gpio1_17";     /* gpio49 */
+
+    fragment@0 {
+        target = <&am33xx_pinmux>;
+        __overlay__ {
+            alarm_gpio_pins: pinmux_alarm_gpio_pins {
+                pinctrl-single,pins = <
+                    0x0a4 0x37      /* P8.46 gpio2_7: MODE7 - INPUT, PULLUP */
+                    0x0ac 0x37      /* P8.44 gpio2_9: MODE7 - INPUT, PULLUP */
+                    0x0a8 0x37      /* P8.43 gpio2_8: MODE7 - INPUT, PULLUP */
+                    0x0a0 0x37      /* P8.45 gpio2_6: MODE7 - INPUT, PULLUP */
+                    0x1ac 0x37      /* P9.25 gpio3_21: MODE7 - INPUT, PULLUP */
+                    0x044 0x37      /* P9.23 gpio1_17: MODE7 - INPUT, PULLUP */
+                >;
+            };
+        };
+    };
+
+    fragment@1 {
+        target = <&ocp>;    /* On-chip Peripherals */
+        __overlay__ {
+
+            alarm_gpio_helper {
+                compatible = "gpio-of-helper";
+                pinctrl-names = "default";
+                pinctrl-0 = <&alarm_gpio_pins>;
+                status = "okay";
+
+                alarm_in_1 {
+                    gpio-name = "alarm_in_1";
+                    gpio = <&gpio2 7 0x00>;
+                    input;
+		    active-high;
+                    count-rising-edge;
+                    count-falling-edge;					
+                };
+                alarm_in_2 {
+                    gpio-name = "alarm_in_2";
+                    gpio = <&gpio2 9 0x00>;
+                    input;
+		    active-high;
+                    count-rising-edge;
+                    count-falling-edge;					
+                };
+                alarm_in_3 {
+                    gpio-name = "alarm_in_3";
+                    gpio = <&gpio2 8 0x00>;
+                    input;
+		    active-high;
+                    count-rising-edge;
+                    count-falling-edge;					
+                };
+                alarm_in_4 {
+                    gpio-name = "alarm_in_4";
+                    gpio = <&gpio2 6 0x00>;
+                    input;
+		    active-high;
+                    count-rising-edge;
+                    count-falling-edge;					
+                };
+                alarm_in_5 {
+                    gpio-name = "alarm_in_5";
+                    gpio = <&gpio3 21 0x00>;
+                    input;
+		    active-high;
+                    count-rising-edge;
+                    count-falling-edge;					
+                };
+                alarm_in_6 {
+                    gpio-name = "alarm_in_6";
+                    gpio = <&gpio1 17 0x00>;
+                    input;
+		    active-high;
+                    count-rising-edge;
+                    count-falling-edge;					
+                };
+	    };
+        };
+    };
+};

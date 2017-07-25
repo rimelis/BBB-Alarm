@@ -1,0 +1,51 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "ti,beaglebone", "ti,beaglebone-black";
+
+    /* Identification */
+    part-number = "BB-ALARM";
+    version = "00A0";
+
+    /* Resources required */
+    exclusive-use =
+        "P8.46",        /* XXX */
+        "P8.44",        /* XXX */
+        "gpio2_7",     /* XXX */
+        "gpio2_9";     /* XXX */
+
+    fragment@0 {
+        target = <&am33xx_pinmux>;
+        __overlay__ {
+            alarm_gpio_pins: pinmux_alarm_gpio_pins {
+                pinctrl-single,pins = <
+                    0x0a4 0x37      /* P8.46 gpio2_7: MODE7 - INPUT, PULLUP */
+                    0x0ac 0x27      /* P8.44 gpio2_9: MODE7 - INPUT, PULLDOWN */
+                >;
+            };
+        };
+    };
+
+    fragment@1 {
+        target = <&ocp>;    /* On-chip Peripherals */
+        __overlay__ {
+
+            alarm_gpio_helper {
+                compatible = "gpio-of-helper";
+                pinctrl-names = "default";
+                pinctrl-0 = <&alarm_gpio_pins>;
+                status = "okay";
+
+                alarm_in_1 {
+                    gpio-name = "alarm_in_1";
+                    gpio = <&gpio2 7 0x00>;
+                    input;
+                    count-rising-edge;
+                    count-falling-edge;					
+                };
+            };
+        };
+    };
+};
+
