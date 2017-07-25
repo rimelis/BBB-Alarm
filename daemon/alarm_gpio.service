@@ -1,5 +1,6 @@
 [Unit]
 Description=BBB-Alarm GPIO processor
+After=syslog.target network.target
 
 [Service]
 ExecStart=/home/debian/daemon/alarm_gpio.py
