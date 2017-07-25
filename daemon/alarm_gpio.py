@@ -69,7 +69,7 @@ exitFlag = 0
 class ProcessGPIOThread (threading.Thread):
     def __init__(self, p_name, p_irq_name, p_gpio_name, p_func_name):
         threading.Thread.__init__(self)
-        self.__title= p_name + " (" + p_irq_name + ":" + p_gpio_name + ")"
+        self.__title= p_name
         logger.debug("Thread " + self.__title + ": Initializing.")
         self.__irq= "cat /proc/interrupts | grep " + p_irq_name
         logger.debug("Thread " + self.__title + ": IRQ count call= " + self.__irq)
@@ -102,7 +102,7 @@ class ProcessGPIOThread (threading.Thread):
                 self.__debounce_counter= 2
               time.sleep(0.1)
             # Reiksme pasikeite
-            logger.info("Thread " + self.__title + ": value= " + str(self.__curr_value))
+            logger.info(self.__title + ": value= " + str(self.__curr_value))
             logger.debug("Thread " + self.__title + ": calling " + \
                          self.__func_name + "(" + str(self.__curr_value) + ")")
             globals()[self.__func_name](self, self.__curr_value)
@@ -132,6 +132,7 @@ def ToggleVartai(p_caller_obj, p_value) :
 
 if __name__ == '__main__':
 
+  logger.debug("---------------------------")
   logger.info("Initializing...")
 
   killer = GracefulKiller()
@@ -149,6 +150,7 @@ if __name__ == '__main__':
     t.start()
 
   logger.info("Started.")
+  logger.debug("---------------------------")
 
   while True:
     time.sleep(1)
