@@ -16,5 +16,6 @@ with open("/dev/mem", "r+b" ) as f:
 
 reg = struct.unpack("<L", mem[GPIO_DATAOUT:GPIO_DATAOUT+4])[0]
 print (reg & GPIO2_4)
+print (reg)
 
 mem.close()
