@@ -3,6 +3,7 @@ Description=BBB-Alarm GPIO processor
 After=multi-user.target
 
 [Service]
+Type=idle
 TimeoutStopSec=3
 ExecStart=/home/debian/daemon/alarm_gpio.py
 
