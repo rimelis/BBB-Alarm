@@ -27,8 +27,9 @@ LOG_LEVEL= int(config['LOGGING']['level'])
 logger = logging.getLogger(__name__)
 # Set the log level to LOG_LEVEL
 logger.setLevel(LOG_LEVEL)
-# Make a handler that writes to a file, making a new file at midnight and keeping 7 backups
-handler = logging.handlers.TimedRotatingFileHandler(LOG_FILENAME, when="midnight", backupCount=7)
+# Make a handler that writes to a file
+handler = logging.handlers.RotatingFileHandler(LOG_FILENAME, mode='a', maxBytes=1*1024*1024,
+                                 backupCount=10, encoding=None, delay=0)
 # Format each log message like this
 formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
 # Attach the formatter to the handler
@@ -70,26 +71,26 @@ class ProcessGPIOThread (threading.Thread):
     def __init__(self, p_name, p_irq_name, p_gpio_name, p_func_name):
         threading.Thread.__init__(self)
         self.__title= p_name
-        logger.debug("Thread " + self.__title + ": Initializing.")
+        logger.debug("THR(" + self.__title + "): Initializing.")
         self.__irq= "cat /proc/interrupts | grep " + p_irq_name
-        logger.debug("Thread " + self.__title + ": IRQ count call= " + self.__irq)
+        logger.debug("THR(" + self.__title + "): IRQ count call= " + self.__irq)
         self.__prev_irq_count= None
         self.__curr_irq_count= None
         self.__gpio= "cat /sys/class/gpio/" + p_gpio_name + "/value"
-        logger.debug("Thread " + self.__title + ": GPIO value call= " + self.__gpio)
+        logger.debug("THR(" + self.__title + "): GPIO value call= " + self.__gpio)
         self.__prev_value= None
         self.__curr_value= None
         self.__debounce_counter= 0
         self.__func_name= p_func_name
-        logger.debug("Thread " + self.__title + ": Function= " + self.__func_name)
+        logger.debug("THR(" + self.__title + "): Function= " + self.__func_name)
     def run(self):
-        logger.debug("Thread " + self.__title + ": Starting.")
+        logger.debug("THR(" + self.__title + "): Starting.")
         while not exitFlag:
           cmd_out= subprocess.check_output(self.__irq, shell=True)
           cmd_out_array= cmd_out.split()
           self.__curr_irq_count= int(cmd_out_array[1])
           if self.__prev_irq_count != self.__curr_irq_count :
-            logger.debug("Thread " + self.__title + ": IRQ counter changed.")
+            logger.debug("THR(" + self.__title + "): IRQ counter changed.")
             self.__prev_irq_count= self.__curr_irq_count
             self.__debounce_counter= 2
             while self.__debounce_counter > 0 :
@@ -100,17 +101,17 @@ class ProcessGPIOThread (threading.Thread):
               else :
                 self.__prev_value= self.__curr_value
                 self.__debounce_counter= 2
-              time.sleep(0.1)
+              time.sleep(0.05)
             # Reiksme pasikeite
             logger.info(self.__title + ": value= " + str(self.__curr_value))
-            logger.debug("Thread " + self.__title + ": calling " + \
+            logger.debug("THR(" + self.__title + "): calling " + \
                          self.__func_name + "(" + str(self.__curr_value) + ")")
             globals()[self.__func_name](self, self.__curr_value)
-          time.sleep(0.2)
-        logger.debug("Thread " + self.__title + ": exiting.")
+          time.sleep(0.1)
+        logger.debug("THR(" + self.__title + "): exiting.")
     def SwitchOutput(self, p_gpio_name, p_value) :
       l_call= 'echo ' + str(p_value) + ' > /sys/class/gpio/' + p_gpio_name + '/value'
-      logger.debug("Thread " + self.__title + ": SwitchOutput= " + l_call)
+      logger.debug("THR(" + self.__title + "): SwitchOutput= " + l_call)
       cmd_out= subprocess.check_call(l_call, shell=True)
 
 
@@ -132,7 +133,7 @@ def ToggleVartai(p_caller_obj, p_value) :
 
 if __name__ == '__main__':
 
-  logger.debug("---------------------------")
+  logger.debug("vvvvv-----------------vvvvv")
   logger.info("Initializing...")
 
   killer = GracefulKiller()
@@ -150,7 +151,7 @@ if __name__ == '__main__':
     t.start()
 
   logger.info("Started.")
-  logger.debug("---------------------------")
+  logger.debug(">>>>>-----------------------")
 
   while True:
     time.sleep(1)
@@ -161,3 +162,4 @@ if __name__ == '__main__':
       break
 
   logger.info("Stopped.")
+  logger.debug("^^^^^-------------------^^^^^")
