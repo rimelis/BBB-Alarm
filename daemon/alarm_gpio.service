@@ -4,6 +4,7 @@ After=multi-user.target
 
 [Service]
 Type=idle
+KillMode=process
 TimeoutStopSec=3
 ExecStart=/home/debian/daemon/alarm_gpio.py
 
