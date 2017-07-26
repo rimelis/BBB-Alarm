@@ -9,12 +9,12 @@ GPIO_CLEARDATAOUT = 0x190
 GPIO_DATAOUT = 0x13C
 GPIO_DATAIN = 0x138
 GPIO2_4 = 1<<4
+GPIO2_5 = 1<<5
 
 with open("/dev/mem", "r+b" ) as f:
   mem = mmap(f.fileno(), GPIO2_size, offset=GPIO2_offset)
 
-reg = struct.unpack("&lt;L", mem[GPIO_DATAOUT:GPIO_DATAOUT+4])[0]
-print (reg)
+reg = struct.unpack("<L", mem[GPIO_DATAOUT:GPIO_DATAOUT+4])[0]
+print (reg ^ GPIO2_4)
 
 mem.close()
-  
