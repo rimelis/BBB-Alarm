@@ -20,7 +20,8 @@ config.read('/home/debian/daemon/alarm_gpio.ini')
 
 LOG_FILENAME= config['LOGGING']['filename']
 LOG_LEVEL= int(config['LOGGING']['level'])
-
+GPO_VARTAI= config['OUTPUTS']['gpo_vartai']
+GPO_GARAZAS= config['OUTPUTS']['gpo_garazas']
 
 # Configure logging to log to a file, making a new file at midnight and keeping the last 7 day's data
 # Give the logger a unique name (good practice)
@@ -120,14 +121,14 @@ def ToggleGarazas(p_caller_obj, p_value) :
     l_value= 1
   else :
     l_value= 0
-  p_caller_obj.SwitchOutput("gpio67", l_value)
+  p_caller_obj.SwitchOutput(GPO_GARAZAS, l_value)
 
 def ToggleVartai(p_caller_obj, p_value) :
   if p_value == 0 :
     l_value= 1
   else :
     l_value= 0
-  p_caller_obj.SwitchOutput("gpio69", l_value)
+  p_caller_obj.SwitchOutput(GPO_VARTAI, l_value)
 
 
 
