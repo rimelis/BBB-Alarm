@@ -15,7 +15,9 @@ with open("/dev/mem", "r+b" ) as f:
   mem = mmap(f.fileno(), GPIO2_size, offset=GPIO2_offset)
 
 reg = struct.unpack("<L", mem[GPIO_DATAOUT:GPIO_DATAOUT+4])[0]
-print (reg & GPIO2_4)
 print (reg)
+print (reg & GPIO2_4)
+print (reg & GPIO2_5)
+
 
 mem.close()
