@@ -102,7 +102,7 @@ class ProcessGPIOThread (threading.Thread):
                 logger.debug("THR(" + self.__title + "): calling " + \
                              self.__func_name + "(" + str(self.__curr_value) + ")")
                 globals()[self.__func_name](self, self.__curr_value)
-            time.sleep(0.05)
+            time.sleep(0.1)
         logger.debug("THR(" + self.__title + "): exiting.")
         self.__file.close()
 
