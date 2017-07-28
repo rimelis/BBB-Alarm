@@ -1,4 +1,7 @@
-import mmap, os
+f = file("'/sys/class/gpio/gpio69/value'", "r")
+f.seek(0, 2)  # Seek relative to end of file
+size = fh.tell()
+fh = f.fileno()
 
-mfd = os.open('/sys/class/gpio/gpio69/value', os.O_RDONLY)
-mm = mmap.mmap(mfd, 0, access=mmap.ACCESS_READ)
+print(size)
+print(fh)
