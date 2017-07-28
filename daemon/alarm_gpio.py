@@ -73,8 +73,8 @@ class ProcessGPIOThread (threading.Thread):
         threading.Thread.__init__(self)
         self.__title= p_name
         logger.debug("THR(" + self.__title + "): Initializing.")
-        self.__gpio= "/sys/class/gpio/" + p_gpio_name + "/value"
         logger.debug("THR(" + self.__title + "): GPIO=" + p_gpio_name)
+        self.__file= open("/sys/class/gpio/" + p_gpio_name + "/value", "r+")
         self.__prev_value= None
         self.__curr_value= None
         self.__debounce_counter= 0
