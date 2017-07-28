@@ -41,7 +41,7 @@ class ProcessInputThread (threading.Thread):
                 globals()[self.__func_name](self.__curr_value)
             time.sleep(0.05)
         print ("Exiting " + self.__title)
-
+        self.__file.close()
 
 def SwitchOutput(p_gpio_name, p_value) :
   if p_value == 0 :

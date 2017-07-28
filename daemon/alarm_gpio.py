@@ -69,16 +69,12 @@ class GracefulKiller:
 exitFlag = 0
 
 class ProcessGPIOThread (threading.Thread):
-    def __init__(self, p_name, p_irq_name, p_gpio_name, p_func_name):
+    def __init__(self, p_name, p_gpio_name, p_func_name):
         threading.Thread.__init__(self)
         self.__title= p_name
         logger.debug("THR(" + self.__title + "): Initializing.")
-        self.__irq= "cat /proc/interrupts | grep " + p_irq_name
-        logger.debug("THR(" + self.__title + "): IRQ count call= " + self.__irq)
-        self.__prev_irq_count= None
-        self.__curr_irq_count= None
-        self.__gpio= "cat /sys/class/gpio/" + p_gpio_name + "/value"
-        logger.debug("THR(" + self.__title + "): GPIO value call= " + self.__gpio)
+        self.__gpio= "/sys/class/gpio/" + p_gpio_name + "/value"
+        logger.debug("THR(" + self.__title + "): GPIO=" + p_gpio_name)
         self.__prev_value= None
         self.__curr_value= None
         self.__debounce_counter= 0
@@ -87,29 +83,29 @@ class ProcessGPIOThread (threading.Thread):
     def run(self):
         logger.debug("THR(" + self.__title + "): Starting.")
         while not exitFlag:
-          cmd_out= subprocess.check_output(self.__irq, shell=True)
-          cmd_out_array= cmd_out.split()
-          self.__curr_irq_count= int(cmd_out_array[1])
-          if self.__prev_irq_count != self.__curr_irq_count :
-            logger.debug("THR(" + self.__title + "): IRQ counter changed.")
-            self.__prev_irq_count= self.__curr_irq_count
-            self.__debounce_counter= 2
-            while self.__debounce_counter > 0 :
-              cmd_out= subprocess.check_output(self.__gpio, shell=True)
-              self.__curr_value= int(cmd_out)
-              if self.__prev_value == self.__curr_value :
-                self.__debounce_counter -= 1
-              else :
+            self.__file.seek(0, 0)
+            self.__curr_value= int(self.__file.read(1))
+            if self.__curr_value != self.__prev_value :
                 self.__prev_value= self.__curr_value
-                self.__debounce_counter= 2
-              time.sleep(0.05)
-            # Reiksme pasikeite
-            logger.info(self.__title + ": value= " + str(self.__curr_value))
-            logger.debug("THR(" + self.__title + "): calling " + \
-                         self.__func_name + "(" + str(self.__curr_value) + ")")
-            globals()[self.__func_name](self, self.__curr_value)
-          time.sleep(0.1)
+                self.__debounce_counter= 3
+                while self.__debounce_counter > 0 :
+                    self.__file.seek(0, 0)
+                    self.__curr_value= int(self.__file.read(1))
+                    if self.__prev_value == self.__curr_value :
+                        self.__debounce_counter -= 1
+                    else :
+                        self.__prev_value= self.__curr_value
+                        self.__debounce_counter= 3
+                    time.sleep(0.05)
+                # Reiksme pasikeite
+                logger.info(self.__title + ": value= " + str(self.__curr_value))
+                logger.debug("THR(" + self.__title + "): calling " + \
+                             self.__func_name + "(" + str(self.__curr_value) + ")")
+                globals()[self.__func_name](self, self.__curr_value)
+            time.sleep(0.05)
         logger.debug("THR(" + self.__title + "): exiting.")
+        self.__file.close()
+
     def SwitchOutput(self, p_gpio_name, p_value) :
       l_call= 'echo ' + str(p_value) + ' > /sys/class/gpio/' + p_gpio_name + '/value'
       logger.debug("THR(" + self.__title + "): SwitchOutput= " + l_call)
@@ -131,7 +127,6 @@ def ToggleVartai(p_caller_obj, p_value) :
   p_caller_obj.SwitchOutput(GPO_VARTAI, l_value)
 
 
-
 if __name__ == '__main__':
 
   logger.debug("vvvvv-----------------vvvvv")
@@ -140,11 +135,11 @@ if __name__ == '__main__':
   killer = GracefulKiller()
   threads = []
 
-  thread = ProcessGPIOThread("Garazas","alarm_in_3", "gpio72", "ToggleGarazas")
+  thread = ProcessGPIOThread("Garazas", "gpio72", "ToggleGarazas")
   threads.append(thread)
-  thread = ProcessGPIOThread("VartaiPultelis", "alarm_in_5", "gpio117", "ToggleVartai")
+  thread = ProcessGPIOThread("VartaiPultelis", "gpio117", "ToggleVartai")
   threads.append(thread)
-  thread = ProcessGPIOThread("VartaiTelefonas", "alarm_in_6", "gpio49", "ToggleVartai")
+  thread = ProcessGPIOThread("VartaiTelefonas", "gpio49", "ToggleVartai")
   threads.append(thread)
 
   # Start new Threads
