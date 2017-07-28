@@ -9,7 +9,7 @@ exitFlag = 0
 class ProcessInputThread (threading.Thread):
     def __init__(self, p_gpio_name, p_func_name):
         threading.Thread.__init__(self)
-#        self.__title= p_irq_name + "(" + p_gpio_name + ")"
+        self.__title= p_gpio_name
 #        self.__irq= "cat /proc/interrupts | grep " + p_irq_name
 #        self.__prev_irq_count= None
 #        self.__curr_irq_count= None
@@ -42,23 +42,6 @@ class ProcessInputThread (threading.Thread):
             time.sleep(0.1)
         print ("Exiting " + self.__title)
 
-          '''
-          cmd_out= subprocess.check_output(self.__irq, shell=True)
-          cmd_out_array= cmd_out.split()
-          self.__curr_irq_count= int(cmd_out_array[1])
-          if self.__prev_irq_count != self.__curr_irq_count :
-            self.__prev_irq_count= self.__curr_irq_count
-            self.__debounce_counter= 2
-            while self.__debounce_counter > 0 :
-              cmd_out= subprocess.check_output(self.__gpio, shell=True)
-              self.__curr_value= int(cmd_out)
-              if self.__prev_value == self.__curr_value :
-                self.__debounce_counter -= 1
-              else :
-                self.__prev_value= self.__curr_value
-                self.__debounce_counter= 2
-              time.sleep(0.1)
-            '''
 
 def SwitchOutput(p_gpio_name, p_value) :
   if p_value == 0 :
