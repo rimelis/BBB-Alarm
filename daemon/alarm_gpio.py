@@ -98,7 +98,7 @@ class ProcessGPIOThread (threading.Thread):
                         self.__debounce_counter= 3
                     time.sleep(0.05)
                 # Reiksme pasikeite
-                logger.info(self.__title + ": value= " + str(self.__curr_value))
+                logger.info(self.__title + ": value > " + str(self.__curr_value))
                 logger.debug("THR(" + self.__title + "): calling " + \
                              self.__func_name + "(" + str(self.__curr_value) + ")")
                 globals()[self.__func_name](self, self.__curr_value)
@@ -107,9 +107,12 @@ class ProcessGPIOThread (threading.Thread):
         self.__file.close()
 
     def SwitchOutput(self, p_gpio_name, p_value) :
-      l_call= 'echo ' + str(p_value) + ' > /sys/class/gpio/' + p_gpio_name + '/value'
-      logger.debug("THR(" + self.__title + "): SwitchOutput= " + l_call)
-      cmd_out= subprocess.check_call(l_call, shell=True)
+#      l_call= 'echo ' + str(p_value) + ' > /sys/class/gpio/' + p_gpio_name + '/value'
+      with open("/sys/class/gpio/" + p_gpio_name + "/value", "w") as l_file:
+          l_file.write(str(p_value))
+          l_file.close()
+      logger.debug("THR(" + self.__title + "): SwitchOutput(" +p_gpio_name+ ") > " + str(p_value))
+#      cmd_out= subprocess.check_call(l_call, shell=True)
 
 
 def ToggleGarazas(p_caller_obj, p_value) :
