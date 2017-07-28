@@ -26,7 +26,7 @@ class ProcessInputThread (threading.Thread):
             self.__curr_value= int(self.__file.read(1))
             if self.__curr_value != self.__prev_value :
                 self.__prev_value= self.__curr_value
-                self.__debounce_counter= 2
+                self.__debounce_counter= 3
                 while self.__debounce_counter > 0 :
                     self.__file.seek(0, 0)
                     self.__curr_value= int(self.__file.read(1))
@@ -34,12 +34,12 @@ class ProcessInputThread (threading.Thread):
                         self.__debounce_counter -= 1
                     else :
                         self.__prev_value= self.__curr_value
-                        self.__debounce_counter= 2
-                    time.sleep(0.1)
+                        self.__debounce_counter= 3
+                    time.sleep(0.05)
                 # Reiksme pasikeite
                 print ("%s: %s %s" % (self.__title, time.ctime(time.time()), self.__curr_value))
                 globals()[self.__func_name](self.__curr_value)
-            time.sleep(0.1)
+            time.sleep(0.05)
         print ("Exiting " + self.__title)
 
 
