@@ -300,13 +300,13 @@ if __name__ == '__main__':
                   if len(instr) == 5 :
                     ra= next((x for x in RAList if x.call_str == instr), None)
                     if not ra:
-                        ra= RequestArea(instr)
+                        ra= AreaEvent(instr)
                         RAList.append(ra)
                         print (ra)
                   if len(instr) == 12 :
                     ra= next((x for x in RAList if x.call_str == instr[0:5]), None)
                     if ra:
-                        ra.put_answer(instr)
+                        ra.answer(instr)
                         RAList.remove(ra)
                         del ra
                     else :
