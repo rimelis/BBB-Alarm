@@ -80,6 +80,7 @@ class ToggleOutputThread (threading.Thread):
           logger.debug("OUTTHR(" + self.__title + "): value > " + str(p_value))
           self.__file.close()
     def run(self):
+        logger.debug("OUTTHR(" + self.__title + "): Starting.")
         while not exitFlag:
             self.__event_occured= self.event.wait(1)
             if self.__event_occured:
@@ -127,13 +128,13 @@ class ReadInputThread (threading.Thread):
     def run(self):
         logger.debug("INTHR(" + self.__title + "): Starting.")
         while not exitFlag:
-            self.WaitForChange()
+            WaitForChange()
             if self.__curr_value == 0 :
                 self.__toogle_output_event.set()
 #                logger.debug("THR(" + self.__title + "): calling " + \
 #                             self.__func_name + "(" + str(self.__curr_value) + ")")
 #                globals()[self.__func_name](self, self.__curr_value)
-                self.WaitForChange()
+                WaitForChange()
         logger.debug("INTHR(" + self.__title + "): exiting.")
         self.__file.close()
 
