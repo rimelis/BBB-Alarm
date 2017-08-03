@@ -128,13 +128,13 @@ class ReadInputThread (threading.Thread):
     def run(self):
         logger.debug("INTHR(" + self.__title + "): Starting.")
         while not exitFlag:
-            WaitForChange()
+            self.WaitForChange()
             if self.__curr_value == 0 :
                 self.__toogle_output_event.set()
 #                logger.debug("THR(" + self.__title + "): calling " + \
 #                             self.__func_name + "(" + str(self.__curr_value) + ")")
 #                globals()[self.__func_name](self, self.__curr_value)
-                WaitForChange()
+                self.WaitForChange()
         logger.debug("INTHR(" + self.__title + "): exiting.")
         self.__file.close()
 
