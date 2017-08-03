@@ -114,7 +114,7 @@ class ReadInputThread (threading.Thread):
             if self.__curr_value == self.__prev_value :
                 time.sleep(0.1)
             else :
-                self.__value_changed= true
+                self.__value_changed= True
                 self.__prev_value= self.__curr_value
                 self.__debounce_counter= 3
                 while self.__debounce_counter > 0 :
