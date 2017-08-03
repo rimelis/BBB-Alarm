@@ -104,7 +104,7 @@ class ReadInputThread (threading.Thread):
 #        self.__func_name= p_func_name
 #        logger.debug("THR(" + self.__title + "): Function= " + self.__func_name)
     def WaitForChange(self):
-        self.__value_changed= false
+        self.__value_changed= False
         while not self.__value_changed :
             self.__file.seek(0, 0)
             self.__curr_value= int(self.__file.read(1))
@@ -128,7 +128,7 @@ class ReadInputThread (threading.Thread):
         logger.debug("INTHR(" + self.__title + "): Starting.")
         while not exitFlag:
             self.WaitForChange()
-            if self.__curr_value == 0
+            if self.__curr_value == 0 :
                 self.__toogle_output_event.set()
 #                logger.debug("THR(" + self.__title + "): calling " + \
 #                             self.__func_name + "(" + str(self.__curr_value) + ")")
