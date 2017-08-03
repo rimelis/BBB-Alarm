@@ -85,9 +85,9 @@ class ToggleOutputThread (threading.Thread):
             self.__event_occured= self.event.wait(1)
             if self.__event_occured:
                 self.event.clear()
-                WriteOutputFile(1)
+                self.WriteOutputFile(1)
                 time.sleep(1)
-                WriteOutputFile(0)
+                self.WriteOutputFile(0)
                 logger.info(self.__title + " toggled.")
         logger.debug("OUTTHR(" + self.__title + "): exiting.")
 
@@ -102,8 +102,6 @@ class ReadInputThread (threading.Thread):
         self.__curr_value= None
         self.__debounce_counter= 0
         self.__toogle_output_event= p_toogle_output_event
-#        self.__func_name= p_func_name
-#        logger.debug("THR(" + self.__title + "): Function= " + self.__func_name)
     def WaitForChange(self):
         self.__value_changed= False
         while not self.__value_changed :
@@ -134,35 +132,10 @@ class ReadInputThread (threading.Thread):
             self.WaitForChange()
             if self.__curr_value == 0 :
                 self.__toogle_output_event.set()
-#                logger.debug("THR(" + self.__title + "): calling " + \
-#                             self.__func_name + "(" + str(self.__curr_value) + ")")
-#                globals()[self.__func_name](self, self.__curr_value)
+                logger.debug("THR(" + self.__title + "): output event set.")
                 self.WaitForChange()
         logger.debug("INTHR(" + self.__title + "): exiting.")
         self.__file.close()
-
-
-"""
-def SwitchOutput(self, p_gpio_name, p_value) :
-  with open("/sys/class/gpio/" + p_gpio_name + "/value", "w") as l_file:
-      l_file.write(str(p_value))
-      l_file.close()
-  logger.debug("THR(" + self.__title + "): SwitchOutput(" +p_gpio_name+ ") > " + str(p_value))
-
-def ToggleGarazas(p_caller_obj, p_value) :
-  if p_value == 0 :
-    l_value= 1
-  else :
-    l_value= 0
-  p_caller_obj.SwitchOutput(GPO_GARAZAS, l_value)
-
-def ToggleVartai(p_caller_obj, p_value) :
-  if p_value == 0 :
-    l_value= 1
-  else :
-    l_value= 0
-  p_caller_obj.SwitchOutput(GPO_VARTAI, l_value)
-"""
 
 if __name__ == '__main__':
 
