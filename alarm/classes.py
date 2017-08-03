@@ -197,9 +197,15 @@ class SystemEvent(object):
                                                                         self.__zone_obj.name,
                                                                         self.area,
                                                                         self.area_desc)
-    elif (self.eventtype == 'U') or (self.eventtype == 'K'):
-      return "Event: {0:s}{1:02d}; Area: {2:1d}({3:s})".format(self.eventdesc,
+    elif (self.eventtype == 'U'):
+      return "Event: {0:s}{1:03d}; Area: {2:1d}({3:s})".format(self.eventdesc,
                                                                         self.event,
+                                                                        self.area,
+                                                                        self.area_desc)
+    elif (self.eventtype == 'K'):
+      return "Event: {0:s}{1:03d}({2:s}); Area: {3:1d}({4:s})".format(self.eventdesc,
+                                                                        self.event,
+                                                                        self.key_switch_name,
                                                                         self.area,
                                                                         self.area_desc)
 
