@@ -107,6 +107,8 @@ class ReadInputThread (threading.Thread):
     def WaitForChange(self):
         self.__value_changed= False
         while not self.__value_changed :
+            if exitFlag :
+                break
             self.__file.seek(0, 0)
             self.__curr_value= int(self.__file.read(1))
             if self.__curr_value == self.__prev_value :
@@ -124,7 +126,8 @@ class ReadInputThread (threading.Thread):
                         self.__prev_value= self.__curr_value
                         self.__debounce_counter= 3
                     time.sleep(0.05)
-        logger.debug("INTHR(" + self.__title + "): WaitForChange > " + str(self.__curr_value))
+        if self.__value_changed :
+            logger.debug("INTHR(" + self.__title + "): WaitForChange > " + str(self.__curr_value))
     def run(self):
         logger.debug("INTHR(" + self.__title + "): Starting.")
         while not exitFlag:
