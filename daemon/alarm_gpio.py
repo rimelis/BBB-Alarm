@@ -132,7 +132,7 @@ class ReadInputThread (threading.Thread):
             self.WaitForChange()
             if self.__curr_value == 0 :
                 self.__toogle_output_event.set()
-                logger.debug("THR(" + self.__title + "): output event set.")
+                logger.debug("INTHR(" + self.__title + "): output event set.")
                 self.WaitForChange()
         logger.debug("INTHR(" + self.__title + "): exiting.")
         self.__file.close()
