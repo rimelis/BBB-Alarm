@@ -59,7 +59,6 @@ class Area(object):
        self.mode= mode
        self.status= status
        self.last_refresh= datetime.now()
-
        self.__db_connection = sqlite.connect('alarm.sqlite')
        self.__db_cursor = self.__db_connection.cursor()
        self.__db_cursor.execute("UPDATE areas SET status= :new_status, mode= :new_mode, last_refresh= :new_date WHERE id = :id",
@@ -96,7 +95,6 @@ class Zone(object):
        self.__db_connection = sqlite.connect('alarm.sqlite')
        self.__db_connection.row_factory = sqlite.Row
        self.__db_cursor = self.__db_connection.cursor()
-
        self.__db_cursor.execute("SELECT name, mode, status, area_id, last_refresh FROM zones WHERE id = :id", {"id":self.id})
        self.__db_row = self.__db_cursor.fetchone()
        if self.__db_row:
@@ -105,9 +103,32 @@ class Zone(object):
            self.status= self.__db_row['status']
            self.area_id= self.__db_row['area_id']
            self.last_refresh= self.__db_row['last_refresh']
-
      except sqlite.Error as e:
        raise TypeError("Zone load SQL error: %s:" % e.args[0])
+     finally:
+        if self.__db_connection:
+          self.__db_connection.close()
+
+  def update(self):
+     try:
+       self.__db_connection = sqlite.connect('alarm.sqlite')
+       self.__db_connection.row_factory = sqlite.Row
+       self.__db_cursor = self.__db_connection.cursor()
+       self.__db_cursor = self.__db_connection.cursor()
+       self.__db_cursor.execute("UPDATE zones SET status= :new_status, mode= :new_mode, last_refresh= :new_date WHERE id = :id",
+                                {"id":self.id, "new_status":self.status, "new_mode":self.mode, "new_date":self.last_refresh})
+       self.__db_connection.commit()
+       print ("Zone '{0:s}' updated: mode:{1:s} status:{2:s} last_refresh:{3:%Y-%m-%d %H:%M:%S}".format(self.name,
+                                                                                                                self.mode,
+                                                                                                                self.status,
+                                                                                                                self.last_refresh)
+              )
+       if self.__db_cursor.rowcount == 0:
+         raise TypeError("Zone '{0:s}' update: no DB record found".format(self.name))
+     except sqlite.Error as e:
+       if self.__db_connection:
+         self.__db_connection.rollback()
+       raise TypeError("Zone {0:s}' update SQL error: %s:" % e.args[0].format(self.name))
      finally:
         if self.__db_connection:
           self.__db_connection.close()
@@ -255,7 +276,6 @@ class AreaEvent(object):
              self.__mode= EventStr[5:6]
              self.__status= EventStr[6:12]
              self.__area_obj.update(self.__mode, self.__status)
-
         else :
           raise TypeError("Request event answer length must be 12 bytes")
       else :
