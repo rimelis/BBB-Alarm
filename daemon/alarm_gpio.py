@@ -14,7 +14,7 @@ import configparser
 LOG_FILENAME = '/media/card/alarm/log/alarm_gpio.log'
 LOG_LEVEL = logging.DEBUG  # Could be e.g. "DEBUG" or "WARNING"
 
-#Opening config
+# Opening config
 config= configparser.ConfigParser()
 config.read('/home/debian/daemon/alarm_gpio.ini')
 

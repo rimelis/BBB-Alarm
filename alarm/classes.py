@@ -17,7 +17,7 @@ G064N000A003
 G064N003A003
 G001N020A002
 G000N020A002
-G015N002A003
+G015N002A003  - nerealizuota
 G001N017A002
 G000N017A002
 """
@@ -104,7 +104,7 @@ class Zone(object):
            self.area_id= self.__db_row['area_id']
            self.last_refresh= self.__db_row['last_refresh']
      except sqlite.Error as e:
-       raise TypeError("Zone load SQL error: %s:" % e.args[0])
+         raise TypeError("Zone load SQL error: %s:" % e.args[0])
      finally:
         if self.__db_connection:
           self.__db_connection.close()
@@ -169,9 +169,9 @@ class SystemEvent(object):
                            {"eg":self.group, "en":self.event})
                self.__db_row = self.__db_cursor.fetchone()
                if self.__db_row:
-                 self.eventdesc= self.__db_row['eg_desc']+": "+self.__db_row['en_desc']
-                 self.eventtype= self.__db_row['en_type']
-                 self.action= self.__db_row['action']
+                    self.eventdesc= self.__db_row['eg_desc']+": "+self.__db_row['en_desc']
+                    self.eventtype= self.__db_row['en_type']
+                    self.action= self.__db_row['action']
 
                """ Srities duomenys """
                self.__area_obj= None
@@ -193,7 +193,7 @@ class SystemEvent(object):
                                {"id":self.event})
                    self.__db_row = self.__db_cursor.fetchone()
                    if self.__db_row:
-                       self.key_switch_name= self.__db_row['desc']
+                      self.key_switch_name= self.__db_row['desc']
                else :
                    self.key_switch_name= None
 
@@ -329,6 +329,7 @@ if __name__ == '__main__':
                         ra.answer(instr)
                         RAList.remove(ra)
                         del ra
+                        print ("Request Area fulfilled")
                     else :
                         print ("Request Area answer {0:s} has not found the request!".format(instr))
               except:
