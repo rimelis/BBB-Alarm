@@ -261,36 +261,36 @@ class AreaEvent(object):
     self.call_str= EventStr
     self.created= datetime.now()
     if (EventStr[0:2] == 'AA') and (len(EventStr) == 5) :
-        self.call_str.join('I')
+        self.call_str = self.call_str + 'I'
     if (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
-        self.call_str.join(Cpassw)
-        self.__mode= EventStr[5:6]
+        self.call_str = self.call_str + Cpassw
+        self.__mode= self.call_str[5:6]
 
   def answer(self, EventStr):
     if isinstance(EventStr, str):
-      if (EventStr[0:2] == 'RA') \
-              and ((EventStr[0:2] == 'AA') \
-               or (EventStr[0:2] == 'AD')) :
+      if (EventStr[0:2] == 'RA') or (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
           try:
               self.__area = int(EventStr[3:5])
           except ValueError:
               raise TypeError("Area conversion error - wrong area")
           if self.__area < 1 or self.__area > 4:
               raise TypeError("Area must be between 1..4")
-          if (EventStr[0:2] == 'RA') and (len(EventStr) == 12) :
+          if EventStr[0:2] == 'RA' :
+              if len(EventStr) == 12 :
                  self.__area_obj= next((x for x in AreaList if x.id == self.__area), None)
                  self.__mode= EventStr[5:6]
                  self.__status= EventStr[6:12]
                  self.__area_obj.update(self.__mode, self.__status)
-          else :
-              raise TypeError("Request event answer length must be 12 bytes")
-          if (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
+              else :
+                  raise TypeError("Request event answer length must be 12 bytes")
+          elif (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
               if EventStr[5:8] == '&ok' :
                   self.__area_obj = next((x for x in AreaList if x.id == self.__area), None)
                   self.__area_obj.update(self.__mode)
               else :
                   if EventStr[5:10] != '&fail' :
                       raise TypeError("Area event answer AA or AD should end with &ok or &fail")
+
       else :
           raise TypeError("Area event answer should start with RA, AA, AD")
     else :
@@ -300,7 +300,7 @@ class AreaEvent(object):
     return "Area event: {0:s} {1:%Y-%m-%d %H:%M:%S}".format(self.call_str, self.created)
   def __del__(self):
     if self.call_str and self.created :
-      print ("Area event destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S}".format(self.call_str, self.created))
+      print ("Area event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S}".format(self.call_str, self.created))
 
 
 
@@ -312,7 +312,9 @@ if __name__ == '__main__':
     AreaList= [Area(x) for x in range(4)]
 
 #    RAQueueLock = threading.Lock()
-    RAList= []
+    RAList = []
+    AAList = []
+    ADList = []
 
     try:
       while True:
@@ -332,32 +334,85 @@ if __name__ == '__main__':
           elif instr[0:2] == 'RA' :
               try:
                   if len(instr) == 5 :
-                    ra= next((x for x in RAList if x.call_str == instr), None)
+                    ra= next((x for x in RAList if x.call_str[0:5] == instr[0:5]), None)
                     if not ra:
                         ra= AreaEvent(instr)
                         RAList.append(ra)
                         print (ra)
-                  if len(instr) == 12 :
-                    ra= next((x for x in RAList if x.call_str == instr[0:5]), None)
-                    if ra:
-                        ra.answer(instr)
-                        RAList.remove(ra)
-                        del ra
-                        print ("Request Area fulfilled")
-                    else :
-                        print ("Request Area answer {0:s} has not found the request!".format(instr))
+                  else :
+                      if len(instr) == 12 :
+                        ra= next((x for x in RAList if x.call_str[0:5] == instr[0:5]), None)
+                        if ra:
+                            ra.answer(instr)
+                            RAList.remove(ra)
+                            del ra
+                            print ("Request Area answer received.")
+                        else :
+                            print ("Request Area answer {0:s} has not found the initiator!".format(instr))
+                      else :
+                          print("Wrong Request Area answer")
               except:
                   formatted_lines = traceback.format_exc().splitlines()
 #                  print (formatted_lines[-1])
                   print (formatted_lines)
+          elif instr[0:2] == 'AA':
+              try:
+                  if (len(instr) >= 5) and (len(instr) <= 6) :
+                      aa = next((x for x in AAList if x.call_str[0:5] == instr[0:5]), None)
+                      if not aa:
+                          aa = AreaEvent(instr)
+                          AAList.append(aa)
+                          print(aa)
+                  else:
+                      aa = next((x for x in AAList if x.call_str[0:5] == instr[0:5]), None)
+                      if aa:
+                          aa.answer(instr)
+                          AAList.remove(aa)
+                          del aa
+                          print("Area arm answer received.")
+                      else:
+                          print("Area arm answer {0:s} has not found the initiator!".format(instr))
+              except:
+                  formatted_lines = traceback.format_exc().splitlines()
+                  #                  print (formatted_lines[-1])
+                  print(formatted_lines)
+          elif instr[0:2] == 'AD':
+              try:
+                  if (len(instr) >= 5) and (len(instr) <= 6) :
+                      ad = next((x for x in ADList if x.call_str[0:5] == instr[0:5]), None)
+                      if not ad:
+                          ad = AreaEvent(instr)
+                          ADList.append(ad)
+                          print(ad)
+                  else:
+                      ad = next((x for x in ADList if x.call_str[0:5] == instr[0:5]), None)
+                      if ad:
+                          ad.answer(instr)
+                          ADList.remove(ad)
+                          del ad
+                          print("Area disarm answer received.")
+                      else:
+                          print("Area disarm answer {0:s} has not found the initiator!".format(instr))
+              except:
+                  formatted_lines = traceback.format_exc().splitlines()
+                  #                  print (formatted_lines[-1])
+                  print(formatted_lines)
           else:
               print ("Unknown input.")
     except KeyboardInterrupt :
       print("Stopped.")
 
+
     while len(RAList) > 0 :
         ra= RAList.pop()
         del ra
+    while len(AAList) > 0 :
+        aa= AAList.pop()
+        del aa
+    while len(ADList) > 0 :
+        ad= ADList.pop()
+        del ad
+
 
 #    for t in threads:
 #        t.join()
