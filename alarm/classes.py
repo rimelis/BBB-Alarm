@@ -25,6 +25,8 @@ G000N017A002
 #ZoneList= []
 #AreaList= []
 
+Cpassw= '4521'
+
 class Area(object):
   def __init__(self, id):
     self.id= id
@@ -54,7 +56,7 @@ class Area(object):
         if self.__db_connection:
           self.__db_connection.close()
 
-  def update(self, mode, status):
+  def update(self, mode, status='OOOOOO'):
      try:
        self.mode= mode
        self.status= status
@@ -249,7 +251,7 @@ class AreaEvent(object):
             and (EventStr[5:6] != 'A') :
             raise TypeError("Area arm event must be F,I,S,A")
       else :
-        raise TypeError("Area event should be start with RA, AA, AD")
+        raise TypeError("Area event should start with RA, AA, AD")
     try:
        self.__area= int(EventStr[3:5])
     except ValueError:
@@ -259,34 +261,46 @@ class AreaEvent(object):
     self.call_str= EventStr
     self.created= datetime.now()
     if (EventStr[0:2] == 'AA') and (len(EventStr) == 5) :
-      self.call_str.join('F')
+        self.call_str.join('I')
+    if (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
+        self.call_str.join(Cpassw)
+        self.__mode= EventStr[5:6]
 
   def answer(self, EventStr):
     if isinstance(EventStr, str):
-      if EventStr[0:2] == 'RA' :
-        if len(EventStr) == 12 :
-             try:
-               self.__area= int(EventStr[3:5])
-             except ValueError:
-               raise TypeError("Request Area conversion error - wrong area")
-             if self.__area < 1 or self.__area > 4 :
-               raise TypeError("Request Area must be between 1..4")
-
-             self.__area_obj= next((x for x in AreaList if x.id == self.__area), None)
-             self.__mode= EventStr[5:6]
-             self.__status= EventStr[6:12]
-             self.__area_obj.update(self.__mode, self.__status)
-        else :
-          raise TypeError("Request event answer length must be 12 bytes")
+      if (EventStr[0:2] == 'RA') \
+              and ((EventStr[0:2] == 'AA') \
+               or (EventStr[0:2] == 'AD')) :
+          try:
+              self.__area = int(EventStr[3:5])
+          except ValueError:
+              raise TypeError("Area conversion error - wrong area")
+          if self.__area < 1 or self.__area > 4:
+              raise TypeError("Area must be between 1..4")
+          if (EventStr[0:2] == 'RA') and (len(EventStr) == 12) :
+                 self.__area_obj= next((x for x in AreaList if x.id == self.__area), None)
+                 self.__mode= EventStr[5:6]
+                 self.__status= EventStr[6:12]
+                 self.__area_obj.update(self.__mode, self.__status)
+          else :
+              raise TypeError("Request event answer length must be 12 bytes")
+          if (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
+              if EventStr[5:8] == '&ok' :
+                  self.__area_obj = next((x for x in AreaList if x.id == self.__area), None)
+                  self.__area_obj.update(self.__mode)
+              else :
+                  if EventStr[5:10] != '&fail' :
+                      raise TypeError("Area event answer AA or AD should end with &ok or &fail")
       else :
-        raise TypeError("Request event should start with RA")
+          raise TypeError("Area event answer should start with RA, AA, AD")
     else :
       raise TypeError("Request event should be string")
+
   def __str__(self):
     return "Area event: {0:s} {1:%Y-%m-%d %H:%M:%S}".format(self.call_str, self.created)
   def __del__(self):
     if self.call_str and self.created :
-      print ("Request Area destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S}".format(self.call_str, self.created))
+      print ("Area event destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S}".format(self.call_str, self.created))
 
 
 
