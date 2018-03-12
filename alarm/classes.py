@@ -348,12 +348,26 @@ class KeySwitchEvent(object):
                 raise TypeError("Utility key event length should be 5 bytes")
         else :
             raise TypeError("Utility key event should start with UK")
+        try:
+           self.__db_connection = sqlite.connect('alarm.sqlite')
+           self.__db_connection.row_factory = sqlite.Row
+           self.__db_cursor = self.__db_connection.cursor()
+           self.__db_cursor.execute("SELECT name FROM zones WHERE id = :id", {"id":self.__id})
+           self.__db_row = self.__db_cursor.fetchone()
+           if self.__db_row:
+               self.name= self.__db_row['name']
+        except sqlite.Error as e:
+             raise TypeError("Keyswitch load SQL error: %s:" % e.args[0])
+        finally:
+            if self.__db_connection:
+              self.__db_connection.close()
+        self.__keyswitch_obj = next((x for x in KeySwitchList if x.id == self.__id), None)
 
     def answer(self, EventStr):
         if isinstance(EventStr, str):
             if EventStr[0:2] == 'UK' :
                 try :
-                    self.__uk = int(EventStr[3:5])
+                    self.__id = int(EventStr[3:5])
                 except ValueError:
                     raise TypeError("Utility key event conversion error - wrong id")
                 if EventStr[5:8] == '&ok' :
@@ -364,13 +378,14 @@ class KeySwitchEvent(object):
                 raise TypeError("Utility key event answer should start with UK")
         else:
             raise TypeError("Utility key event answer should be string")
+        self.__keyswitch_obj = next((x for x in KeySwitchList if x.id == self.__id), None)
 
     def __str__(self):
-        return "Utility key event: {0:s} {1:%Y-%m-%d %H:%M:%S}".format(self.call_str, self.created)
+        return "Utility key event: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__keyswitch_obj.name)
 
     def __del__(self):
         if self.call_str and self.created:
-            print("Utility key event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S}".format(self.call_str, self.created))
+            print("Utility key event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__keyswitch_obj.name))
 
 
 #####################################################################################
