@@ -332,7 +332,6 @@ class AreaEvent(object):
       print ("Area event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__area_obj.name))
 
 
-
 class KeySwitchEvent(object):
     def __init__(self, EventStr):
         self.call_str = None
@@ -505,7 +504,9 @@ if __name__ == '__main__':
     while len(ADList) > 0 :
         ad= ADList.pop()
         del ad
-
+    while len(KSList) > 0 :
+        ks= KSList.pop()
+        del ks
 
 #    for t in threads:
 #        t.join()
