@@ -396,7 +396,6 @@ if __name__ == '__main__':
     AreaList= [Area(x) for x in range(5)]
     KeySwitchList= [KeySwitch(x) for x in range(8)]
 
-#    RAQueueLock = threading.Lock()
     RAList= []
     AAList= []
     ADList= []
@@ -523,8 +522,6 @@ if __name__ == '__main__':
         ks= KSList.pop()
         del ks
 
-#    for t in threads:
-#        t.join()
 
     """
     test= SystemEvent("G001N005A003")

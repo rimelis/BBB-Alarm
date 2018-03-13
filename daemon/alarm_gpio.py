@@ -139,7 +139,7 @@ class ReadInputThread (threading.Thread):
 
 if __name__ == '__main__':
 
-  logger.debug("vvvvv-----------------vvvvv")
+  logger.debug("vvvvv---------v---------vvvvv")
   logger.info("Initializing...")
 
   killer = GracefulKiller()
@@ -173,4 +173,4 @@ if __name__ == '__main__':
       break
 
   logger.info("Stopped.")
-  logger.debug("^^^^^-------------------^^^^^")
+  logger.debug("^^^^^---------^---------^^^^^")
