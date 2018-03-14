@@ -8,6 +8,7 @@ import logging
 import logging.handlers
 import signal
 import configparser
+import paho.mqtt.client as MQTTClient
 
 
 # Defaults
@@ -20,6 +21,11 @@ config.read('/home/debian/daemon/alarm_gpio.ini')
 
 LOG_FILENAME= config['LOGGING']['filename']
 LOG_LEVEL= int(config['LOGGING']['level'])
+
+MQTT_BROKER_ADDRESS= config['MQTT_BROKER']['address']
+MQTT_BROKER_PORT= int(config['MQTT_BROKER']['port'])
+MQTT_BROKER_USER= config['MQTT_BROKER']['user']
+MQTT_BROKER_PASSWORD= config['MQTT_BROKER']['password']
 
 # Configure logging to log to a file, making a new file at midnight and keeping the last 7 day's data
 # Give the logger a unique name (good practice)
@@ -137,6 +143,39 @@ class ReadInputThread (threading.Thread):
         logger.debug("INTHR(" + self.__title + "): exiting.")
         self.__file.close()
 
+class ReadMQTTThread (threading.Thread):
+    def OnConnect(self, p_client, p_userdata, p_flags, p_rc):
+        if p_rc == 0:
+            logger.debug("MQTTTHR(" + self.__title + "): Connected to broker.")
+            _self.__connected= True
+        else:
+            logger.error("MQTTTHR(" + self.__title + "): Connection failed!")
+    def OnMessage(self, p_client, p_obj, p_message):
+        logger.debug("MQTTTHR(" + self.__title + "): Message received > " + p_message.payload.decode('utf-8'))
+    def __init__(self, p_name, p_topic, p_toogle_output_event):
+        threading.Thread.__init__(self)
+        self.__title= p_name
+        self.__topic= p_topic
+        logger.debug("MQTTTHR(" + self.__title + "): Initializing.")
+        logger.debug("MQTTTHR(" + self.__title + "): Topic=" + self.__topic)
+        self.__connected = False
+        self.__client= MQTTClient.Client("GPIO_read_thread_" + self.__title)
+        self.__client.username_pw_set(MQTT_BROKER_USER, password=MQTT_BROKER_PASSWORD)
+        self.__client.on_connect = self.OnConnect
+        self.__client.on_message = self.OnMessage
+    def run(self):
+        logger.debug("MQTTTHR(" + self.__title + "): Starting.")
+        self.__client.connect(MQTT_BROKER_ADDRESS, port=MQTT_BROKER_PORT)
+        self.__client.loop_start()
+        while not self.__connected :  # Wait for connection
+            time.sleep(0.1)
+        self.__client.subscribe(self.__topic)
+        while not exitFlag:
+            time.sleep(1)
+        self.__client.disconnect()
+        self.__client.loop_stop()
+        logger.debug("MQTTTHR(" + self.__title + "): exiting.")
+
 if __name__ == '__main__':
 
   logger.debug("vvvvv---------v---------vvvvv")
@@ -155,6 +194,8 @@ if __name__ == '__main__':
   InputThread = ReadInputThread("Vartai_pultelis", "gpio117", VartaiThread.event)
   threads.append(InputThread)
   InputThread = ReadInputThread("Vartai_telefonas", "gpio49", VartaiThread.event)
+  threads.append(InputThread)
+  InputThread = ReadMQTTThread("Garazas_komanda_MQTT", "/namai/garazas/vartai/komanda", GarazasThread.event)
   threads.append(InputThread)
 
   # Start new Threads
