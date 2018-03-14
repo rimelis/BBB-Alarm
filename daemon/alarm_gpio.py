@@ -9,6 +9,7 @@ import logging.handlers
 import signal
 import configparser
 import paho.mqtt.client as MQTTClient
+from os import path
 
 
 # Defaults
@@ -17,6 +18,8 @@ LOG_LEVEL = logging.DEBUG  # Could be e.g. "DEBUG" or "WARNING"
 
 # Opening config
 config= configparser.ConfigParser()
+config_file_path = path.join(path.dirname(path.abspath(__file__)), 'alarm_gpio.ini')
+print (config_file_path)
 config.read('/home/debian/daemon/alarm_gpio.ini')
 
 LOG_FILENAME= config['LOGGING']['filename']
