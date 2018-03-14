@@ -20,6 +20,7 @@ LOG_LEVEL = logging.DEBUG  # Could be e.g. "DEBUG" or "WARNING"
 config= configparser.ConfigParser()
 config_file_path = path.join(path.dirname(path.abspath(__file__)), 'alarm_gpio.ini')
 if not path.exists(config_file_path):
+    logger.debug("Config reader: /home/debian/daemon/alarm_gpio.ini")
     config_file_path= '/home/debian/daemon/alarm_gpio.ini'
 config.read(config_file_path)
 
@@ -157,7 +158,7 @@ class ReadMQTTThread (threading.Thread):
     def OnMessage(self, p_client, p_obj, p_message):
         self.__message= p_message.payload.decode('utf-8')
         logger.debug("MQTTTHR(" + self.__title + "): Message received > " + self.__message)
-        if self.__message == 'RUN' :
+        if self.__message == 'TOGGLE' :
             self.__toogle_output_event.set()
         else :
             logger.error("MQTTTHR(" + self.__title + "): Unrecognised message received > " + self.__message)
@@ -207,11 +208,14 @@ if __name__ == '__main__':
   threads.append(InputThread)
   InputThread = ReadMQTTThread("Garazas_komanda_MQTT", "/namai/garazas/vartai/komanda", GarazasThread.event)
   threads.append(InputThread)
+  InputThread = ReadMQTTThread("Vartai_komanda_MQTT", "/namai/kiemas/vartai/komanda", VartaiThread.event)
+  threads.append(InputThread)
 
   # Start new Threads
   for t in threads :
     t.start()
 
+  time.sleep(1)
   logger.info("Started.")
   logger.debug(">>>>>-----------------------")
 
