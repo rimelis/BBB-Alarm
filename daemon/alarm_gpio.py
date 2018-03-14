@@ -151,7 +151,7 @@ class ReadMQTTThread (threading.Thread):
     def OnConnect(self, p_client, p_userdata, p_flags, p_rc):
         if p_rc == 0:
             logger.debug("MQTTTHR(" + self.__title + "): Connected to broker.")
-            _self.__connected= True
+            self.__connected= True
         else:
             logger.error("MQTTTHR(" + self.__title + "): Connection failed!")
     def OnMessage(self, p_client, p_obj, p_message):
