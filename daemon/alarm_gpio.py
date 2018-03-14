@@ -155,7 +155,12 @@ class ReadMQTTThread (threading.Thread):
         else:
             logger.error("MQTTTHR(" + self.__title + "): Connection failed!")
     def OnMessage(self, p_client, p_obj, p_message):
-        logger.debug("MQTTTHR(" + self.__title + "): Message received > " + p_message.payload.decode('utf-8'))
+        self.__message= p_message.payload.decode('utf-8')
+        logger.debug("MQTTTHR(" + self.__title + "): Message received > " + self.__message)
+        if self.__message == 'RUN' :
+            self.__toogle_output_event.set()
+        else :
+            logger.error("MQTTTHR(" + self.__title + "): Unrecognised message received > " + self.__message)
     def __init__(self, p_name, p_topic, p_toogle_output_event):
         threading.Thread.__init__(self)
         self.__title= p_name
@@ -167,15 +172,16 @@ class ReadMQTTThread (threading.Thread):
         self.__client.username_pw_set(MQTT_BROKER_USER, password=MQTT_BROKER_PASSWORD)
         self.__client.on_connect = self.OnConnect
         self.__client.on_message = self.OnMessage
+        self.__toogle_output_event= p_toogle_output_event
     def run(self):
         logger.debug("MQTTTHR(" + self.__title + "): Starting.")
         self.__client.connect(MQTT_BROKER_ADDRESS, port=MQTT_BROKER_PORT, keepalive=60)
         self.__client.loop_start()
         while not self.__connected :  # Wait for connection
-            time.sleep(0.1)
+            time.sleep(0.05)
         self.__client.subscribe(self.__topic)
         while not exitFlag:
-            time.sleep(1)
+            time.sleep(0.5)
         self.__client.disconnect()
         self.__client.loop_stop()
         logger.debug("MQTTTHR(" + self.__title + "): exiting.")
