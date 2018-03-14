@@ -165,7 +165,7 @@ class ReadMQTTThread (threading.Thread):
         self.__client.on_message = self.OnMessage
     def run(self):
         logger.debug("MQTTTHR(" + self.__title + "): Starting.")
-        self.__client.connect(MQTT_BROKER_ADDRESS, port=MQTT_BROKER_PORT, 60)
+        self.__client.connect(MQTT_BROKER_ADDRESS, port=MQTT_BROKER_PORT, keepalive=60)
         self.__client.loop_start()
         while not self.__connected :  # Wait for connection
             time.sleep(0.1)
