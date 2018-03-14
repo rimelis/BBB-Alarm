@@ -152,7 +152,7 @@ class ReadMQTTThread (threading.Thread):
     def OnConnect(self, p_client, p_userdata, p_flags, p_rc):
         if p_rc == 0:
             logger.debug("MQTTTHR(" + self.__title + "): Connected to broker.")
-            self.__connected= True
+            self.__client.subscribe(self.__topic)
         else:
             logger.error("MQTTTHR(" + self.__title + "): Connection failed!")
     def OnMessage(self, p_client, p_obj, p_message):
@@ -168,7 +168,6 @@ class ReadMQTTThread (threading.Thread):
         self.__topic= p_topic
         logger.debug("MQTTTHR(" + self.__title + "): Initializing.")
         logger.debug("MQTTTHR(" + self.__title + "): Topic=" + self.__topic)
-        self.__connected = False
         self.__client= MQTTClient.Client("GPIO_read_thread_" + self.__title)
         self.__client.username_pw_set(MQTT_BROKER_USER, password=MQTT_BROKER_PASSWORD)
         self.__client.on_connect = self.OnConnect
@@ -178,11 +177,8 @@ class ReadMQTTThread (threading.Thread):
         logger.debug("MQTTTHR(" + self.__title + "): Starting.")
         self.__client.connect(MQTT_BROKER_ADDRESS, port=MQTT_BROKER_PORT, keepalive=60)
         self.__client.loop_start()
-        while not self.__connected :  # Wait for connection
-            time.sleep(0.05)
-        self.__client.subscribe(self.__topic)
         while not exitFlag:
-            time.sleep(0.5)
+            time.sleep(1)
         self.__client.disconnect()
         self.__client.loop_stop()
         logger.debug("MQTTTHR(" + self.__title + "): exiting.")
