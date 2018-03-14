@@ -19,8 +19,9 @@ LOG_LEVEL = logging.DEBUG  # Could be e.g. "DEBUG" or "WARNING"
 # Opening config
 config= configparser.ConfigParser()
 config_file_path = path.join(path.dirname(path.abspath(__file__)), 'alarm_gpio.ini')
-print (config_file_path)
-config.read('/home/debian/daemon/alarm_gpio.ini')
+if not path.exists(config_file_path):
+    config_file_path= '/home/debian/daemon/alarm_gpio.ini'
+config.read(config_file_path)
 
 LOG_FILENAME= config['LOGGING']['filename']
 LOG_LEVEL= int(config['LOGGING']['level'])
