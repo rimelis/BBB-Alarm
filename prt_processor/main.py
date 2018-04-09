@@ -41,7 +41,7 @@ logger.addHandler(handler)
 
 # Console logger
 consoleHandler = logging.StreamHandler()
-logger.addHandler(consolehandler)
+logger.addHandler(consoleHandler)
 
 #####################################################################################################
 
