@@ -73,7 +73,7 @@ class Area(object):
        self.__db_cursor.execute("UPDATE areas SET status= :new_status, mode= :new_mode, last_refresh= :new_date WHERE id = :id",
                                 {"id":self.id, "new_status":self.status, "new_mode":self.mode, "new_date":self.last_refresh})
        self.__db_connection.commit()
-       logger.debug("Area '{0:s}' updated: mode:{1:s} status:{2:s} last_refresh:{3:%Y-%m-%d %H:%M:%S}".format(self.name,
+       logger.info("Area '{0:s}' updated: mode:{1:s} status:{2:s} last_refresh:{3:%Y-%m-%d %H:%M:%S}".format(self.name,
                                                                                                                 self.mode,
                                                                                                                 self.status,
                                                                                                                 self.last_refresh)
@@ -126,7 +126,7 @@ class Zone(object):
        self.__db_cursor.execute("UPDATE zones SET status= :new_status, mode= :new_mode, last_refresh= :new_date WHERE id = :id",
                                 {"id":self.id, "new_status":self.status, "new_mode":self.mode, "new_date":self.last_refresh})
        self.__db_connection.commit()
-       logger.debug("Zone '{0:s}' updated: mode:{1:s} status:{2:s} last_refresh:{3:%Y-%m-%d %H:%M:%S}".format(self.name,
+       logger.info("Zone '{0:s}' updated: mode:{1:s} status:{2:s} last_refresh:{3:%Y-%m-%d %H:%M:%S}".format(self.name,
                                                                                                                 self.mode,
                                                                                                                 self.status,
                                                                                                                 self.last_refresh)

@@ -59,7 +59,6 @@ if __name__ == '__main__':
     logger.debug("vvvvv---------v---------vvvvv")
     logger.info("Initializing...")
 
-
     RAList= []
     AAList= []
     ADList= []
@@ -150,10 +149,10 @@ if __name__ == '__main__':
                   else:
                       ks = next((x for x in KSList if x.call_str[0:5] == instr[0:5]), None)
                       if ks:
+                          logger.debug("Utility key event answer received.")
                           ks.answer(instr)
                           KSList.remove(ks)
                           del ks
-                          logger.debug("Utility key event answer received.")
                       else:
                           logger.debug("Utility key event answer {0:s} has not found the initiator!".format(instr))
               except Exception as e:
