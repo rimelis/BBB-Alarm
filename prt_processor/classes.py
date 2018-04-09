@@ -257,6 +257,7 @@ class SystemEvent(object):
 
 class AreaEvent(object):
   def __init__(self, EventStr):
+    global AreaList
     self.call_str= None
     self.created= None
     self.desc= None
@@ -297,6 +298,7 @@ class AreaEvent(object):
         self.__mode= self.call_str[5:6]
 
   def answer(self, EventStr):
+    global AreaList
     if isinstance(EventStr, str):
       if (EventStr[0:2] == 'RA') or (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
           try:
@@ -334,6 +336,7 @@ class AreaEvent(object):
 
 class KeySwitchEvent(object):
     def __init__(self, EventStr):
+        global KeySwitchList
         self.call_str = None
         self.created = None
         if EventStr[0:2] == 'UK' :
@@ -364,6 +367,7 @@ class KeySwitchEvent(object):
         self.__keyswitch_obj = next((x for x in KeySwitchList if x.id == self.__id), None)
 
     def answer(self, EventStr):
+        global KeySwitchList
         if isinstance(EventStr, str):
             if EventStr[0:2] == 'UK' :
                 try :
