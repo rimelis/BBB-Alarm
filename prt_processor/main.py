@@ -61,6 +61,7 @@ if __name__ == '__main__':
       while True:
         instr= input(">")
         if len(instr) > 0 :
+          logger.debug(">"+instr)
           if instr == "exit" :
               break
           elif instr[0:1] == 'G' :
@@ -162,7 +163,9 @@ if __name__ == '__main__':
           else:
               print ("Unknown input.")
     except KeyboardInterrupt :
-      print("Stopped.")
+        print("Stopped.")
+    except Exception:
+        logger.exception("Error")
 
 
     while len(RAList) > 0 :
