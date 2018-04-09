@@ -3,7 +3,7 @@ import logging.handlers
 import configparser
 from os import path
 import paho.mqtt.client as MQTTClient
-import classes
+from classes import Area, Zone, KeySwitch, SystemEvent, AreaEvent, KeySwitchEvent
 
 # Defaults
 LOG_FILENAME = '/media/card/prt_processor/log/prt_processor.log'
