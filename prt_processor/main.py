@@ -39,3 +39,9 @@ handler.setFormatter(formatter)
 # Attach the handler to the logger
 logger.addHandler(handler)
 
+#####################################################################################################
+
+if __name__ == '__main__':
+
+  logger.debug("vvvvv---------v---------vvvvv")
+  logger.info("Initializing...")
