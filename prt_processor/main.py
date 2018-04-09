@@ -39,6 +39,10 @@ handler.setFormatter(formatter)
 # Attach the handler to the logger
 logger.addHandler(handler)
 
+# Console logger
+consoleHandler = logging.StreamHandler()
+logger.addHandler(consolehandler)
+
 #####################################################################################################
 
 if __name__ == '__main__':
