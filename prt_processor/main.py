@@ -3,7 +3,16 @@ import logging.handlers
 import configparser
 from os import path
 import paho.mqtt.client as MQTTClient
+import sqlite3 as sqlite
+import sys
+from builtins import TypeError, isinstance
+from datetime import datetime
+import traceback
+import threading
+import time
+
 from classes import Area, Zone, KeySwitch, SystemEvent, AreaEvent, KeySwitchEvent
+
 
 # Defaults
 LOG_FILENAME = '/media/card/prt_processor/log/prt_processor.log'
