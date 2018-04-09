@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import sqlite3 as sqlite
+import sys
+from builtins import TypeError, isinstance
+from datetime import datetime
+import time
+
+
 """
 G004N009A000
 G064N000A001
