@@ -162,6 +162,7 @@ class KeySwitch(object):
 
 class SystemEvent(object):
   def __init__(self, EventStr):
+    global AreaList, ZoneList, KeySwitchList
     if isinstance(EventStr, str):
       if (len(EventStr) == 12) \
           and (EventStr[0:1] == 'G') \
