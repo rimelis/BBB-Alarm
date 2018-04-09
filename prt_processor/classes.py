@@ -46,7 +46,7 @@ class Area(object):
     self.load_from_db()
   def load_from_db(self):
      try:
-       self.__db_connection = sqlite.connect('alarm.sqlite')
+       self.__db_connection = sqlite.connect('db.sqlite')
        self.__db_connection.row_factory = sqlite.Row
        self.__db_cursor = self.__db_connection.cursor()
        self.__db_cursor.execute("SELECT name, mode, status, last_refresh FROM areas WHERE id = :id", {"id":self.id})
@@ -67,7 +67,7 @@ class Area(object):
        self.mode= mode
        self.status= status
        self.last_refresh= datetime.now()
-       self.__db_connection = sqlite.connect('alarm.sqlite')
+       self.__db_connection = sqlite.connect('db.sqlite')
        self.__db_cursor = self.__db_connection.cursor()
        self.__db_cursor.execute("UPDATE areas SET status= :new_status, mode= :new_mode, last_refresh= :new_date WHERE id = :id",
                                 {"id":self.id, "new_status":self.status, "new_mode":self.mode, "new_date":self.last_refresh})
@@ -100,7 +100,7 @@ class Zone(object):
     self.load_from_db()
   def load_from_db(self):
      try:
-       self.__db_connection = sqlite.connect('alarm.sqlite')
+       self.__db_connection = sqlite.connect('db.sqlite')
        self.__db_connection.row_factory = sqlite.Row
        self.__db_cursor = self.__db_connection.cursor()
        self.__db_cursor.execute("SELECT name, mode, status, area_id, last_refresh FROM zones WHERE id = :id", {"id":self.id})
@@ -119,7 +119,7 @@ class Zone(object):
 
   def update(self):
      try:
-       self.__db_connection = sqlite.connect('alarm.sqlite')
+       self.__db_connection = sqlite.connect('db.sqlite')
        self.__db_connection.row_factory = sqlite.Row
        self.__db_cursor = self.__db_connection.cursor()
        self.__db_cursor.execute("UPDATE zones SET status= :new_status, mode= :new_mode, last_refresh= :new_date WHERE id = :id",
@@ -146,7 +146,7 @@ class KeySwitch(object):
         self.id= id
         self.name= None
         try:
-            self.__db_connection = sqlite.connect('alarm.sqlite')
+            self.__db_connection = sqlite.connect('db.sqlite')
             self.__db_connection.row_factory = sqlite.Row
             self.__db_cursor = self.__db_connection.cursor()
             self.__db_cursor.execute("SELECT desc FROM keyswitches WHERE id = :id",
@@ -183,7 +183,7 @@ class SystemEvent(object):
                raise TypeError("System event conversion error - wrong area")
 
              try:
-               self.__db_connection = sqlite.connect('alarm.sqlite')
+               self.__db_connection = sqlite.connect('db.sqlite')
                self.__db_connection.row_factory = sqlite.Row
                self.__db_cursor = self.__db_connection.cursor()
 
@@ -349,7 +349,7 @@ class KeySwitchEvent(object):
         else :
             raise TypeError("Utility key event should start with UK")
         try:
-           self.__db_connection = sqlite.connect('alarm.sqlite')
+           self.__db_connection = sqlite.connect('db.sqlite')
            self.__db_connection.row_factory = sqlite.Row
            self.__db_cursor = self.__db_connection.cursor()
            self.__db_cursor.execute("SELECT name FROM zones WHERE id = :id", {"id":self.__id})
