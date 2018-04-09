@@ -77,10 +77,8 @@ if __name__ == '__main__':
                   se= SystemEvent(instr)
                   print(se)
                   del se
-              except:
-                  formatted_lines = traceback.format_exc().splitlines()
-#                  print (formatted_lines[-1])
-                  print (formatted_lines)
+              except Exception as e:
+                  log_app_error(e)
           elif instr[0:2] == 'RA' :
               try:
                   if len(instr) == 5 :
@@ -88,19 +86,19 @@ if __name__ == '__main__':
                     if not ra:
                         ra= AreaEvent(instr)
                         RAList.append(ra)
-                        print (ra)
+                        logger.debug(ra)
                   else :
                       if len(instr) == 12 :
                         ra= next((x for x in RAList if x.call_str[0:5] == instr[0:5]), None)
                         if ra:
+                            logger.debug("Request Area answer received.")
                             ra.answer(instr)
                             RAList.remove(ra)
                             del ra
-                            print ("Request Area answer received.")
                         else :
-                            print ("Request Area answer {0:s} has not found the initiator!".format(instr))
+                            logger.debug("Request Area answer {0:s} has not found the initiator!".format(instr))
                       else :
-                          print("Wrong Request Area answer")
+                          logger.debug("Wrong Request Area answer")
               except Exception as e:
                   log_app_error(e)
           elif instr[0:2] == 'AA':
@@ -110,16 +108,16 @@ if __name__ == '__main__':
                       if not aa:
                           aa = AreaEvent(instr)
                           AAList.append(aa)
-                          print(aa)
+                          logger.debug(aa)
                   else:
                       aa = next((x for x in AAList if x.call_str[0:5] == instr[0:5]), None)
                       if aa:
+                          logger.debug("Area arm answer received.")
                           aa.answer(instr)
                           AAList.remove(aa)
                           del aa
-                          print("Area arm answer received.")
                       else:
-                          print("Area arm answer {0:s} has not found the initiator!".format(instr))
+                          logger.debug("Area arm answer {0:s} has not found the initiator!".format(instr))
               except Exception as e:
                   log_app_error(e)
           elif instr[0:2] == 'AD':
@@ -129,16 +127,16 @@ if __name__ == '__main__':
                       if not ad:
                           ad = AreaEvent(instr)
                           ADList.append(ad)
-                          print(ad)
+                          logger.debug(ad)
                   else:
                       ad = next((x for x in ADList if x.call_str[0:5] == instr[0:5]), None)
                       if ad:
+                          logger.debug("Area disarm answer received.")
                           ad.answer(instr)
                           ADList.remove(ad)
                           del ad
-                          print("Area disarm answer received.")
                       else:
-                          print("Area disarm answer {0:s} has not found the initiator!".format(instr))
+                          logger.debug("Area disarm answer {0:s} has not found the initiator!".format(instr))
               except Exception as e:
                   log_app_error(e)
           elif instr[0:2] == 'UK':
@@ -148,16 +146,16 @@ if __name__ == '__main__':
                       if not ks:
                           ks = KeySwitchEvent(instr)
                           KSList.append(ks)
-                          print(ks)
+                          logger.debug(ks)
                   else:
                       ks = next((x for x in KSList if x.call_str[0:5] == instr[0:5]), None)
                       if ks:
                           ks.answer(instr)
                           KSList.remove(ks)
                           del ks
-                          print("Utility key event answer received.")
+                          logger.debug("Utility key event answer received.")
                       else:
-                          print("Utility key event answer {0:s} has not found the initiator!".format(instr))
+                          logger.debug("Utility key event answer {0:s} has not found the initiator!".format(instr))
               except Exception as e:
                   log_app_error(e)
           else:
