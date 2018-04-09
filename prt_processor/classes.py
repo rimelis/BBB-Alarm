@@ -5,7 +5,7 @@ import sys
 from builtins import TypeError, isinstance
 from datetime import datetime
 import time
-
+from shared_vars import AreaList, ZoneList, KeySwitchList
 
 """
 G004N009A000
@@ -257,7 +257,7 @@ class SystemEvent(object):
 
 class AreaEvent(object):
   def __init__(self, EventStr):
-    global AreaList
+#   global AreaList
     self.call_str= None
     self.created= None
     self.desc= None
@@ -298,7 +298,7 @@ class AreaEvent(object):
         self.__mode= self.call_str[5:6]
 
   def answer(self, EventStr):
-    global AreaList
+#    global AreaList
     if isinstance(EventStr, str):
       if (EventStr[0:2] == 'RA') or (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
           try:

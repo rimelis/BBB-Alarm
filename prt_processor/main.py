@@ -6,7 +6,7 @@ import traceback
 import paho.mqtt.client as MQTTClient
 
 from classes import Area, Zone, KeySwitch, SystemEvent, AreaEvent, KeySwitchEvent
-
+from shared_vars import AreaList, ZoneList, KeySwitchList
 
 # Defaults
 LOG_FILENAME = '/media/card/prt_processor/log/prt_processor.log'
