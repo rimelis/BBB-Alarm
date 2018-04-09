@@ -164,13 +164,14 @@ class SystemLists(object):
         self.Zones = [Zone(x) for x in range(48)]
         self.Areas = [Area(x) for x in range(5)]
         self.KeySwitches = [KeySwitch(x) for x in range(8)]
-    def getArea(self, id):
+    def getArea(id):
         return next((x for x in self.Areas if x.id == id), None)
     def getZone(self, id):
         return next((x for x in self.Zones if x.id == id), None)
     def getKeySwitch(self, id):
         return next((x for x in self.KeySwitches if x.id == id), None)
 
+SLists = SystemLists()
 
 class SystemEvent(object):
   def __init__(self, EventStr):
@@ -216,7 +217,7 @@ class SystemEvent(object):
                self.area_desc= 'None'
                if self.area > 0:
 #                 self.__area_obj= next((x for x in AreaList if x.id == self.area), None)
-                 self.__area_obj = SystemLists.getArea(self.area)
+                 self.__area_obj = SLists.getArea(self.area)
                  if self.__area_obj:
                      self.area_desc= self.__area_obj.name
 
