@@ -6,7 +6,6 @@ import traceback
 import paho.mqtt.client as MQTTClient
 
 from classes import Area, Zone, KeySwitch, SystemEvent, AreaEvent, KeySwitchEvent
-import shared_vars
 
 # Defaults
 LOG_FILENAME = '/media/card/prt_processor/log/prt_processor.log'
@@ -52,9 +51,6 @@ if __name__ == '__main__':
     logger.debug("vvvvv---------v---------vvvvv")
     logger.info("Initializing...")
 
-    shared_vars.ZoneList= [Zone(x) for x in range(48)]
-    shared_vars.AreaList= [Area(x) for x in range(5)]
-    shared_vars.KeySwitchList= [KeySwitch(x) for x in range(8)]
 
     RAList= []
     AAList= []

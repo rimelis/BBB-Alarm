@@ -1,3 +1,0 @@
-AreaList = []
-ZoneList = []
-KeySwitchList = []

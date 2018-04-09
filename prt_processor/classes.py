@@ -5,7 +5,6 @@ import sys
 from builtins import TypeError, isinstance
 from datetime import datetime
 import time
-from shared_vars import AreaList, ZoneList, KeySwitchList
 
 """
 G004N009A000
@@ -160,9 +159,21 @@ class KeySwitch(object):
                 self.__db_connection.close()
 
 
+class SystemLists(object):
+    def __init__(self):
+        self.Zones = [Zone(x) for x in range(48)]
+        self.Areas = [Area(x) for x in range(5)]
+        self.KeySwitches = [KeySwitch(x) for x in range(8)]
+    def getArea(self, id):
+        return next((x for x in self.Areas if x.id == id), None)
+    def getZone(self, id):
+        return next((x for x in self.Zones if x.id == id), None)
+    def getKeySwitch(self, id):
+        return next((x for x in self.KeySwitches if x.id == id), None)
+
+
 class SystemEvent(object):
   def __init__(self, EventStr):
-    global AreaList, ZoneList, KeySwitchList
     if isinstance(EventStr, str):
       if (len(EventStr) == 12) \
           and (EventStr[0:1] == 'G') \
@@ -204,19 +215,22 @@ class SystemEvent(object):
                self.__area_obj= None
                self.area_desc= 'None'
                if self.area > 0:
-                 self.__area_obj= next((x for x in AreaList if x.id == self.area), None)
+#                 self.__area_obj= next((x for x in AreaList if x.id == self.area), None)
+                 self.__area_obj = SystemLists.getArea(self.area)
                  if self.__area_obj:
                      self.area_desc= self.__area_obj.name
 
                """ Zonos duomenys """
                if self.eventtype == 'Z':
-                 self.__zone_obj= next((x for x in ZoneList if x.id == self.event), None)
+#                 self.__zone_obj= next((x for x in ZoneList if x.id == self.event), None)
+                 self.__zone_obj = SystemLists.getZone(self.event)
                else:
                  self.__zone_obj= None
 
                """ Keyswitch duomenys """
                if self.eventtype == 'K':
-                   self.__keyswitch_obj = next((x for x in KeySwitchList if x.id == self.event), None)
+#                   self.__keyswitch_obj = next((x for x in KeySwitchList if x.id == self.event), None)
+                   self.__keyswitch_obj = SystemLists.getKeySwitch(self.event)
                else:
                    self.__keyswitch_obj = None
 
@@ -257,7 +271,6 @@ class SystemEvent(object):
 
 class AreaEvent(object):
   def __init__(self, EventStr):
-#   global AreaList
     self.call_str= None
     self.created= None
     self.desc= None
@@ -298,7 +311,6 @@ class AreaEvent(object):
         self.__mode= self.call_str[5:6]
 
   def answer(self, EventStr):
-#    global AreaList
     if isinstance(EventStr, str):
       if (EventStr[0:2] == 'RA') or (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
           try:
@@ -336,7 +348,6 @@ class AreaEvent(object):
 
 class KeySwitchEvent(object):
     def __init__(self, EventStr):
-        global KeySwitchList
         self.call_str = None
         self.created = None
         if EventStr[0:2] == 'UK' :
@@ -367,7 +378,6 @@ class KeySwitchEvent(object):
         self.__keyswitch_obj = next((x for x in KeySwitchList if x.id == self.__id), None)
 
     def answer(self, EventStr):
-        global KeySwitchList
         if isinstance(EventStr, str):
             if EventStr[0:2] == 'UK' :
                 try :
