@@ -94,8 +94,8 @@ if __name__ == '__main__':
                           print("Wrong Request Area answer")
               except:
                   formatted_lines = traceback.format_exc().splitlines()
-#                  print (formatted_lines[-1])
-                  print (formatted_lines)
+                  print (formatted_lines[-1])
+#                  print (formatted_lines)
           elif instr[0:2] == 'AA':
               try:
                   if (len(instr) >= 5) and (len(instr) <= 6) :
@@ -178,6 +178,8 @@ if __name__ == '__main__':
         ks= KSList.pop()
         del ks
 
+    logger.info("Stopped.")
+    logger.debug("^^^^^---------^---------^^^^^")
 
     """
     test= SystemEvent("G001N005A003")
