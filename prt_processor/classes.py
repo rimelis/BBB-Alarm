@@ -5,6 +5,7 @@ import sys
 from builtins import TypeError, isinstance
 from datetime import datetime
 import time
+import logging
 
 """
 G004N009A000
@@ -22,6 +23,8 @@ G000N017A002
 
 #ZoneList= []
 #AreaList= []
+
+logger = logging.getLogger("prt_processor_logger")
 
 Cpassw= '4521'
 
@@ -70,7 +73,7 @@ class Area(object):
        self.__db_cursor.execute("UPDATE areas SET status= :new_status, mode= :new_mode, last_refresh= :new_date WHERE id = :id",
                                 {"id":self.id, "new_status":self.status, "new_mode":self.mode, "new_date":self.last_refresh})
        self.__db_connection.commit()
-       print ("Area '{0:s}' updated: mode:{1:s} status:{2:s} last_refresh:{3:%Y-%m-%d %H:%M:%S}".format(self.name,
+       logger.debug("Area '{0:s}' updated: mode:{1:s} status:{2:s} last_refresh:{3:%Y-%m-%d %H:%M:%S}".format(self.name,
                                                                                                                 self.mode,
                                                                                                                 self.status,
                                                                                                                 self.last_refresh)
@@ -123,7 +126,7 @@ class Zone(object):
        self.__db_cursor.execute("UPDATE zones SET status= :new_status, mode= :new_mode, last_refresh= :new_date WHERE id = :id",
                                 {"id":self.id, "new_status":self.status, "new_mode":self.mode, "new_date":self.last_refresh})
        self.__db_connection.commit()
-       print ("Zone '{0:s}' updated: mode:{1:s} status:{2:s} last_refresh:{3:%Y-%m-%d %H:%M:%S}".format(self.name,
+       logger.debug("Zone '{0:s}' updated: mode:{1:s} status:{2:s} last_refresh:{3:%Y-%m-%d %H:%M:%S}".format(self.name,
                                                                                                                 self.mode,
                                                                                                                 self.status,
                                                                                                                 self.last_refresh)
@@ -341,7 +344,7 @@ class AreaEvent(object):
     return "Area event: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__area_obj.name)
   def __del__(self):
     if self.call_str and self.created :
-      print ("Area event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__area_obj.name))
+        logger.debug("Area event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__area_obj.name))
 
 
 class KeySwitchEvent(object):
@@ -397,6 +400,5 @@ class KeySwitchEvent(object):
 
     def __del__(self):
         if self.call_str and self.created:
-            print("Utility key event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__keyswitch_obj.name))
-
+            logger.debug("Utility key event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__keyswitch_obj.name))
 
