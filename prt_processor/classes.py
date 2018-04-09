@@ -164,7 +164,7 @@ class SystemLists(object):
         self.Zones = [Zone(x) for x in range(48)]
         self.Areas = [Area(x) for x in range(5)]
         self.KeySwitches = [KeySwitch(x) for x in range(8)]
-    def getArea(id):
+    def getArea(self, id):
         return next((x for x in self.Areas if x.id == id), None)
     def getZone(self, id):
         return next((x for x in self.Zones if x.id == id), None)
