@@ -45,6 +45,14 @@ logger.addHandler(handler)
 consoleHandler = logging.StreamHandler()
 logger.addHandler(consoleHandler)
 
+#### Exception logger into one log line
+def log_app_error(e: BaseException, level=logging.ERROR) -> None:
+    e_traceback = traceback.format_exception(e.__class__, e, e.__traceback__)
+    traceback_lines = []
+    for line in [line.rstrip('\n') for line in e_traceback]:
+        traceback_lines.extend(line.splitlines())
+    logger.log(level, traceback_lines.__str__())
+
 #####################################################################################################
 
 if __name__ == '__main__':
@@ -93,8 +101,8 @@ if __name__ == '__main__':
                             print ("Request Area answer {0:s} has not found the initiator!".format(instr))
                       else :
                           print("Wrong Request Area answer")
-              except Exception:
-                  logger.exception("RA error")
+              except Exception as e:
+                  log_app_error(e)
 #                  formatted_lines = traceback.format_exc().splitlines()
 #                  print (formatted_lines[-1])
 #                  print (formatted_lines)
