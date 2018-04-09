@@ -103,9 +103,6 @@ if __name__ == '__main__':
                           print("Wrong Request Area answer")
               except Exception as e:
                   log_app_error(e)
-#                  formatted_lines = traceback.format_exc().splitlines()
-#                  print (formatted_lines[-1])
-#                  print (formatted_lines)
           elif instr[0:2] == 'AA':
               try:
                   if (len(instr) >= 5) and (len(instr) <= 6) :
@@ -123,10 +120,8 @@ if __name__ == '__main__':
                           print("Area arm answer received.")
                       else:
                           print("Area arm answer {0:s} has not found the initiator!".format(instr))
-              except:
-                  formatted_lines = traceback.format_exc().splitlines()
-                  #                  print (formatted_lines[-1])
-                  print(formatted_lines)
+              except Exception as e:
+                  log_app_error(e)
           elif instr[0:2] == 'AD':
               try:
                   if (len(instr) >= 5) and (len(instr) <= 6) :
@@ -144,10 +139,8 @@ if __name__ == '__main__':
                           print("Area disarm answer received.")
                       else:
                           print("Area disarm answer {0:s} has not found the initiator!".format(instr))
-              except:
-                  formatted_lines = traceback.format_exc().splitlines()
-                  #                  print (formatted_lines[-1])
-                  print(formatted_lines)
+              except Exception as e:
+                  log_app_error(e)
           elif instr[0:2] == 'UK':
               try:
                   if len(instr) == 5 :
@@ -165,17 +158,14 @@ if __name__ == '__main__':
                           print("Utility key event answer received.")
                       else:
                           print("Utility key event answer {0:s} has not found the initiator!".format(instr))
-              except:
-                  formatted_lines = traceback.format_exc().splitlines()
-                  #                  print (formatted_lines[-1])
-                  print(formatted_lines)
+              except Exception as e:
+                  log_app_error(e)
           else:
               print ("Unknown input.")
     except KeyboardInterrupt :
         print("Stopped.")
-    except Exception:
-        logger.exception("Error")
-
+    except Exception as e:
+        log_app_error(e)
 
     while len(RAList) > 0 :
         ra= RAList.pop()

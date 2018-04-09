@@ -216,22 +216,19 @@ class SystemEvent(object):
                self.__area_obj= None
                self.area_desc= 'None'
                if self.area > 0:
-#                 self.__area_obj= next((x for x in AreaList if x.id == self.area), None)
                  self.__area_obj = SLists.getArea(self.area)
                  if self.__area_obj:
                      self.area_desc= self.__area_obj.name
 
                """ Zonos duomenys """
                if self.eventtype == 'Z':
-#                 self.__zone_obj= next((x for x in ZoneList if x.id == self.event), None)
-                 self.__zone_obj = SystemLists.getZone(self.event)
+                 self.__zone_obj = SLists.getZone(self.event)
                else:
                  self.__zone_obj= None
 
                """ Keyswitch duomenys """
                if self.eventtype == 'K':
-#                   self.__keyswitch_obj = next((x for x in KeySwitchList if x.id == self.event), None)
-                   self.__keyswitch_obj = SystemLists.getKeySwitch(self.event)
+                   self.__keyswitch_obj = SLists.getKeySwitch(self.event)
                else:
                    self.__keyswitch_obj = None
 
@@ -304,7 +301,7 @@ class AreaEvent(object):
        raise TypeError("Area Event error: area must be between 1..4")
     self.call_str= EventStr
     self.created= datetime.now()
-    self.__area_obj = next((x for x in AreaList if x.id == self.__area), None)
+    self.__area_obj = SLists.getArea(self.__area)
     if (EventStr[0:2] == 'AA') and (len(EventStr) == 5) :
         self.call_str = self.call_str + 'I'
     if (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
@@ -322,7 +319,7 @@ class AreaEvent(object):
               raise TypeError("Area must be between 1..4")
           if EventStr[0:2] == 'RA' :
               if len(EventStr) == 12 :
-                 self.__area_obj= next((x for x in AreaList if x.id == self.__area), None)
+                 self.__area_obj= SLists.getArea(self.__area)
                  self.__mode= EventStr[5:6]
                  self.__status= EventStr[6:12]
                  self.__area_obj.update(self.__mode, self.__status)
@@ -330,7 +327,7 @@ class AreaEvent(object):
                   raise TypeError("Request event answer length must be 12 bytes")
           elif (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
               if EventStr[5:8] == '&ok' :
-                  self.__area_obj = next((x for x in AreaList if x.id == self.__area), None)
+                  self.__area_obj = SLists.getArea(self.__area)
                   self.__area_obj.update(self.__mode)
               elif EventStr[5:10] != '&fail' :
                   raise TypeError("Area event answer AA or AD should end with &ok or &fail")
@@ -376,7 +373,7 @@ class KeySwitchEvent(object):
         finally:
             if self.__db_connection:
               self.__db_connection.close()
-        self.__keyswitch_obj = next((x for x in KeySwitchList if x.id == self.__id), None)
+        self.__keyswitch_obj = SLists.getKeySwitch(self.__id)
 
     def answer(self, EventStr):
         if isinstance(EventStr, str):
@@ -386,14 +383,14 @@ class KeySwitchEvent(object):
                 except ValueError:
                     raise TypeError("Utility key event conversion error - wrong id")
                 if EventStr[5:8] == '&ok' :
-                    self.__keyswitch_obj = next((x for x in KeySwitchList if x.id == self.__id), None)
+                    self.__keyswitch_obj = SLists.getKeySwitch(self.__id)
                 elif EventStr[5:10] != '&fail':
                     raise TypeError("Utility key event answer should end with &ok or &fail")
             else:
                 raise TypeError("Utility key event answer should start with UK")
         else:
             raise TypeError("Utility key event answer should be string")
-        self.__keyswitch_obj = next((x for x in KeySwitchList if x.id == self.__id), None)
+        self.__keyswitch_obj = SLists.getKeySwitch(self.__id)
 
     def __str__(self):
         return "Utility key event: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__keyswitch_obj.name)
