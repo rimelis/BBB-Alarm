@@ -93,9 +93,10 @@ if __name__ == '__main__':
                             print ("Request Area answer {0:s} has not found the initiator!".format(instr))
                       else :
                           print("Wrong Request Area answer")
-              except:
-                  formatted_lines = traceback.format_exc().splitlines()
-                  print (formatted_lines[-1])
+              except Exception:
+                  logger.exception("RA error")
+#                  formatted_lines = traceback.format_exc().splitlines()
+#                  print (formatted_lines[-1])
 #                  print (formatted_lines)
           elif instr[0:2] == 'AA':
               try:
