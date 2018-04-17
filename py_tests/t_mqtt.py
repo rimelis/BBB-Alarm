@@ -17,7 +17,7 @@ client.on_connect = on_connect
 client.on_message = on_message
 
 client.username_pw_set("uodas", "zyzlys")
-client.connect("192.168.88.10", 1883, 60)
+client.connect("192.168.88.8", 1883, 60)
 
 # Blocking call that processes network traffic, dispatches callbacks and
 # handles reconnecting.
