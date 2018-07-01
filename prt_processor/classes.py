@@ -6,6 +6,8 @@ from builtins import TypeError, isinstance
 from datetime import datetime
 import time
 import logging
+import paho.mqtt.client as MQTT
+
 
 """
 G004N009A000
@@ -36,6 +38,50 @@ CommDict= {'VO':'Virtual input open',\
            'AD':'Area Disarm',\
            'UK':'Utility Key'}
 
+class MQTTClient(object):
+  def OnConnect(self, p_client, p_userdata, p_flags, p_rc):
+    if p_rc == 0:
+        logger.debug("Connected to MQTT broker.")
+        try:
+            """" Keyswitch IN subscribes """
+            self.__db_connection = sqlite.connect('db.sqlite')
+            self.__db_connection.row_factory = sqlite.Row
+            self.__db_cursor = self.__db_connection.cursor()
+            for self.__db_row in \
+                    self.__db_cursor.execute("SELECT DISTINCT mqtt_topic FROM keyswitches WHERE direction = 'IN'"):
+                self.__topic = self.__db_row['mqtt_topic']
+                logger.info("MQTT keyswitch IN subscribe : > " + self.__topic)
+                self.__client.subscribe(self.__topic)
+        except sqlite.Error as e:
+            raise TypeError("Keyswitch IN SQL error: %s:" % e.args[0])
+        finally:
+            if self.__db_connection:
+                self.__db_connection.close()
+    else:
+        logger.error("Connection to MQTT failed!")
+
+  def OnMessage(self, p_client, p_userdata, p_message):
+    self.__topic= p_message.topic
+    self.__payload= p_message.payload.decode('utf-8')
+    logger.info("MQTT Message received > " + self.__topic + " : " + self.__payload)
+
+  def publish(self, p_topic, p_payload):
+      self.__client.publish(p_topic, p_payload)
+
+  def __init__(self, p_broker_address, p_broker_port, p_username, p_password):
+    logger.debug("MQTT client initializing.")
+    self.__client= MQTT.Client("PRT_processor_client")
+    self.__client.username_pw_set(p_username, password=p_password)
+    self.__client.on_connect = self.OnConnect
+    self.__client.on_message = self.OnMessage
+    self.__client.connect(p_broker_address, port=p_broker_port, keepalive=60)
+    self.__client.loop_start()
+
+  def __del__(self):
+      self.__client.disconnect()
+      self.__client.loop_stop()
+
+
 class Area(object):
   def __init__(self, id):
     self.id= id
@@ -44,8 +90,8 @@ class Area(object):
     self.status= None
     self.last_refresh= None
     self.mqtt_topic= None
-
     self.load_from_db()
+
   def load_from_db(self):
      try:
        self.__db_connection = sqlite.connect('db.sqlite')

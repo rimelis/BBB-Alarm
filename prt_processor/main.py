@@ -3,7 +3,6 @@ import logging.handlers
 import configparser
 from os import path
 import traceback
-import paho.mqtt.client as MQTTClient
 
 from classes import Area, Zone, KeySwitch, SystemEvent, AreaEvent, KeySwitchEvent
 
