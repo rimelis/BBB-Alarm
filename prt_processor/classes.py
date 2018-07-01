@@ -43,6 +43,7 @@ class Area(object):
     self.mode= None
     self.status= None
     self.last_refresh= None
+    self.mqtt_topic= None
 
     self.load_from_db()
   def load_from_db(self):
@@ -57,6 +58,7 @@ class Area(object):
            self.mode= self.__db_row['mode']
            self.status= self.__db_row['status']
            self.last_refresh= self.__db_row['last_refresh']
+           self.mqtt_topic= self.__db_row['mqtt_topic']
      except sqlite.Error as e:
        raise TypeError("Area load SQL error: %s:" % e.args[0])
      finally:
