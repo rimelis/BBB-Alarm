@@ -43,13 +43,13 @@ class MQTTClient(object):
     if p_rc == 0:
         logger.debug("Connected to MQTT broker.")
         try:
-            """" Keyswitch IN subscribes """
+            """ Keyswitch IN subscribes """
             self.__db_connection = sqlite.connect('db.sqlite')
             self.__db_connection.row_factory = sqlite.Row
             self.__db_cursor = self.__db_connection.cursor()
             for self.__db_row in \
                     self.__db_cursor.execute("SELECT DISTINCT mqtt_topic FROM keyswitches WHERE direction = 'IN'"):
-                self.__topic = self.__db_row['mqtt_topic']
+                self.__topic = self.__db_row['mqtt_topic'] + "/komanda"
                 logger.info("MQTT keyswitch IN subscribe : > " + self.__topic)
                 self.__client.subscribe(self.__topic)
         except sqlite.Error as e:
@@ -61,9 +61,26 @@ class MQTTClient(object):
         logger.error("Connection to MQTT failed!")
 
   def OnMessage(self, p_client, p_userdata, p_message):
+    self.__keyswitch_id = None
     self.__topic= p_message.topic
     self.__payload= p_message.payload.decode('utf-8')
     logger.info("MQTT Message received > " + self.__topic + " : " + self.__payload)
+    try:
+      """ Getting keyswitch regarding received topic and payload"""
+      self.__db_connection = sqlite.connect('db.sqlite')
+      self.__db_connection.row_factory = sqlite.Row
+      self.__db_cursor = self.__db_connection.cursor()
+      self.__db_cursor.execute("SELECT id FROM keyswitches WHERE mqtt_topic = :topic AND direction = 'IN' AND payload = :payload",
+                               {"topic": self.__topic.replace('/komanda', ''), "payload": self.__payload})
+      self.__db_row = self.__db_cursor.fetchone()
+      if self.__db_row:
+          self.__keyswitch_id = self.__db_row['id']
+          logger.info("Keyswitch > " + self.__keyswitch_id)
+    except sqlite.Error as e:
+      raise TypeError("Keyswitch IN SQL error: %s:" % e.args[0])
+    finally:
+      if self.__db_connection:
+        self.__db_connection.close()
 
   def publish(self, p_topic, p_payload):
       self.__client.publish(p_topic, p_payload)
