@@ -4,7 +4,7 @@ import configparser
 from os import path
 import traceback
 
-from classes import Area, Zone, KeySwitch, SystemEvent, AreaEvent, KeySwitchEvent
+from classes import Area, Zone, KeySwitch, SystemEvent, AreaEvent, KeySwitchEvent, MQTTClient
 
 # Defaults
 LOG_FILENAME = '/media/card/prt_processor/log/prt_processor.log'
@@ -62,6 +62,8 @@ if __name__ == '__main__':
     AAList= []
     ADList= []
     KSList= []
+
+    mqtt= MQTTClient()
 
     try:
       while True:
@@ -174,7 +176,9 @@ if __name__ == '__main__':
         del ad
     while len(KSList) > 0 :
         ks= KSList.pop()
-        del ks
+        del
+
+    del mqtt
 
     logger.info("Stopped.")
     logger.debug("^^^^^---------^---------^^^^^")
