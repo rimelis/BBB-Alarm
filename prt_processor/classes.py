@@ -228,7 +228,7 @@ class KeySwitch(object):
             if self.__db_connection:
                 self.__db_connection.close()
     def __str__(self):
-        return "Keyswitch: {0:s}({1:03d})".format(self.id, self.name)
+        return "Keyswitch: {0:s}({1:03d})".format(self.name, self.id)
 
 
 class SystemLists(object):
