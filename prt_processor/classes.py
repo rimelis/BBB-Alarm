@@ -75,12 +75,14 @@ class MQTTClient(object):
       self.__db_row = self.__db_cursor.fetchone()
       if self.__db_row:
           self.__keyswitch_id = self.__db_row['id']
-          logger.info("Keyswitch > " + self.__keyswitch_id)
     except sqlite.Error as e:
       raise TypeError("Keyswitch IN SQL error: %s:" % e.args[0])
     finally:
       if self.__db_connection:
         self.__db_connection.close()
+    if self.__keyswitch_id :
+        self.__keyswitch_obj = SLists.getKeySwitch(self.__keyswitch_id)
+        logger.info(self.__keyswitch_obj)
 
   def publish(self, p_topic, p_payload):
       self.__client.publish(p_topic, p_payload)
@@ -225,6 +227,8 @@ class KeySwitch(object):
         finally:
             if self.__db_connection:
                 self.__db_connection.close()
+    def __str__(self):
+        return "Keyswitch: {0:s}({1:03d})".format(self.id, self.name)
 
 
 class SystemLists(object):
