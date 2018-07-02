@@ -176,7 +176,7 @@ if __name__ == '__main__':
         del ad
     while len(KSList) > 0 :
         ks= KSList.pop()
-        del
+        del ks
 
     del mqtt
 
