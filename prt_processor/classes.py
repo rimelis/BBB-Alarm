@@ -97,7 +97,7 @@ class Area(object):
        self.__db_connection = sqlite.connect('db.sqlite')
        self.__db_connection.row_factory = sqlite.Row
        self.__db_cursor = self.__db_connection.cursor()
-       self.__db_cursor.execute("SELECT name, mode, status, last_refresh FROM areas WHERE id = :id", {"id":self.id})
+       self.__db_cursor.execute("SELECT name, mode, status, last_refresh, mqtt_topic FROM areas WHERE id = :id", {"id":self.id})
        self.__db_row = self.__db_cursor.fetchone()
        if self.__db_row:
            self.name= self.__db_row['name']
