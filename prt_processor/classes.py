@@ -154,12 +154,12 @@ class Area(object):
               )
        if self.__db_cursor.rowcount == 0:
          raise TypeError("Area '{0:s}' update: no DB record found".format(self.name))
-     except sqlite.Error as e:
+    except sqlite.Error as e:
        if self.__db_connection:
          self.__db_connection.rollback()
        raise TypeError("Area {0:s}' update SQL error: %s:" % e.args[0].format(self.name))
-     finally:
-        if self.__db_connection:
+    finally:
+       if self.__db_connection:
           self.__db_connection.close()
     self.__payload= self.mode + self.status
     MQTTClient.publish(self.mqtt_topic, self.__payload)
