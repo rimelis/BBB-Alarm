@@ -162,8 +162,9 @@ class Area(object):
        if self.__db_connection:
           self.__db_connection.close()
     self.__payload = self.mode + self.status
-    self.__mqtt_obj= globals()["mqtt"]
-    self.__mqtt_obj.publish(self.mqtt_topic, self.__payload)
+    print(globals())
+#    self.__mqtt_obj= globals()["mqtt"]
+#    self.__mqtt_obj.publish(self.mqtt_topic, self.__payload)
 
 
 class Zone(object):
