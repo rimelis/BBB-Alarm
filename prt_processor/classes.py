@@ -43,17 +43,24 @@ class MQTTClient(object):
     if p_rc == 0:
         logger.debug("Connected to MQTT broker.")
         try:
-            """ Keyswitch IN subscribes """
             self.__db_connection = sqlite.connect('db.sqlite')
             self.__db_connection.row_factory = sqlite.Row
             self.__db_cursor = self.__db_connection.cursor()
+            # Keyswitch IN subscribes
             for self.__db_row in \
                     self.__db_cursor.execute("SELECT DISTINCT mqtt_topic FROM keyswitches WHERE direction = 'IN'"):
                 self.__topic = self.__db_row['mqtt_topic'] + "/komanda"
-                logger.info("MQTT keyswitch IN subscribe : > " + self.__topic)
+                logger.info("MQTT keyswitch subscribe : > " + self.__topic)
                 self.__client.subscribe(self.__topic)
+            # Areas subscribes
+            for self.__db_row in \
+                    self.__db_cursor.execute("SELECT mqtt_topic FROM areas"):
+                self.__topic = self.__db_row['mqtt_topic'] + "/komanda"
+                logger.info("MQTT area subscribe : > " + self.__topic)
+                self.__client.subscribe(self.__topic)
+
         except sqlite.Error as e:
-            raise TypeError("Keyswitch IN SQL error: %s:" % e.args[0])
+            raise TypeError("SQL error: %s:" % e.args[0])
         finally:
             if self.__db_connection:
                 self.__db_connection.close()
@@ -131,10 +138,10 @@ class Area(object):
           self.__db_connection.close()
 
   def update(self, mode, status='OOOOOO'):
-     try:
-       self.mode= mode
-       self.status= status
-       self.last_refresh= datetime.now()
+    self.mode = mode
+    self.status = status
+    self.last_refresh = datetime.now()
+    try:
        self.__db_connection = sqlite.connect('db.sqlite')
        self.__db_cursor = self.__db_connection.cursor()
        self.__db_cursor.execute("UPDATE areas SET status= :new_status, mode= :new_mode, last_refresh= :new_date WHERE id = :id",
@@ -154,6 +161,8 @@ class Area(object):
      finally:
         if self.__db_connection:
           self.__db_connection.close()
+    self.__payload= self.mode + self.status
+    MQTTClient.publish(self.mqtt_topic, self.__payload)
 
 
 class Zone(object):
@@ -227,6 +236,8 @@ class KeySwitch(object):
         finally:
             if self.__db_connection:
                 self.__db_connection.close()
+    def trigger(self):
+        return "UK{0:3d}".format(self.id)
     def __str__(self):
         return "Keyswitch: {0:s} ({1:03d})".format(self.name, self.id)
 

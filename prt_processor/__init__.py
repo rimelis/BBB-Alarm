@@ -1,4 +1,4 @@
-# __all__ = ["Area", "Zone", "KeySwitch", "SystemEvent", "AreaEvent", "KeySwitchEvent"]
+# __all__ = ["Area", "Zone", "KeySwitch", "SystemEvent", "AreaEvent", "KeySwitchEvent", "MQTTClient"]
 
-from classes import Area, Zone, KeySwitch, SystemEvent, AreaEvent, KeySwitchEvent
+from classes import Area, Zone, KeySwitch, SystemEvent, AreaEvent, KeySwitchEvent, MQTTClient
 
