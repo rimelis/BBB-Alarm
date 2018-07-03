@@ -63,7 +63,7 @@ if __name__ == '__main__':
     ADList= []
     KSList= []
 
-    mqtt= MQTTClient(MQTT_BROKER_ADDRESS, MQTT_BROKER_PORT, MQTT_BROKER_USER, MQTT_BROKER_PASSWORD)
+    global mqtt= MQTTClient(MQTT_BROKER_ADDRESS, MQTT_BROKER_PORT, MQTT_BROKER_USER, MQTT_BROKER_PASSWORD)
 
     try:
       while True:
