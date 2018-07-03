@@ -52,6 +52,9 @@ def log_app_error(e: BaseException, level=logging.ERROR) -> None:
         traceback_lines.extend(line.splitlines())
     logger.log(level, traceback_lines.__str__())
 
+# Global MQTT
+mqtt= MQTTClient(MQTT_BROKER_ADDRESS, MQTT_BROKER_PORT, MQTT_BROKER_USER, MQTT_BROKER_PASSWORD)
+
 #####################################################################################################
 
 if __name__ == '__main__':
@@ -62,8 +65,6 @@ if __name__ == '__main__':
     AAList= []
     ADList= []
     KSList= []
-
-    global mqtt= MQTTClient(MQTT_BROKER_ADDRESS, MQTT_BROKER_PORT, MQTT_BROKER_USER, MQTT_BROKER_PASSWORD)
 
     try:
       while True:
