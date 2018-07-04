@@ -116,6 +116,7 @@ class Area(object):
     self.status= None
     self.last_refresh= None
     self.mqtt_topic= None
+    self.payload= None
     self.load_from_db()
 
   def load_from_db(self):
@@ -160,10 +161,8 @@ class Area(object):
        raise TypeError("Area {0:s}' update SQL error: %s:" % e.args[0].format(self.name))
     finally:
        if self.__db_connection:
-          self.__db_connection.close()
-    self.__payload = self.mode + self.status
-#    self.__mqtt_obj= globals()["MQTT"]
-#s    mqtt.publish(self.mqtt_topic, self.__payload)
+         self.__db_connection.close()
+    self.payload = self.mode + self.status
 
 
 class Zone(object):
