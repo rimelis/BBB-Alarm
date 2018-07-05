@@ -168,27 +168,27 @@ class Area(object):
          self.__db_connection.close()
     # Getting mode string
     if self.mode == 'D' :
-        self.__mode_str = 'Disarmed'
+        l_mode_str = 'Disarmed'
     elif self.mode == 'A' :
-        self.__mode_str = 'Armed'
+        l_mode_str = 'Armed'
     elif self.mode == 'F' :
-        self.__mode_str = 'Force armed'
+        l_mode_str = 'Force armed'
     elif self.mode == 'S' :
-        self.__mode_str = 'Stay armed'
+        l_mode_str = 'Stay armed'
     elif self.mode == 'I' :
-        self.__mode_str = 'Instant armed'
+        l_mode_str = 'Instant armed'
     # Getting status string
     if self.status == 'OOOOOO' :
         self.__status= 'Ready'
     else :
-        self.__status_str = None
+        l_status_list = []
         if self.status[0:1] == 'M' :
-            self.__status_str= 'Zone in memory'
+            l_status_list.append('Zone in memory')
         if self.status[1:1] == 'T' :
-            self.__status_str= self.__status_str + ('; ' if not self.__status_str) + 'Trouble'
+            l_status_list.append('Trouble')
         if self.status[2:1] == 'N' :
-            self.__status_str= self.__status_str + ('; ' if not self.__status_str) + 'Not ready'
-    self.payload = json.dump(dict([('mode', self.__mode_str), ('status', self.__status_str)]))
+            l_status_list.append('Not ready')
+    self.payload = json.dump(dict([('mode', l_mode_str), ('status', ';'.join(l_status_list))]))
 
 class Zone(object):
   def __init__(self, id):
