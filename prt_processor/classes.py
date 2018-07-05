@@ -386,7 +386,7 @@ class AreaEvent(Area):
     self.call_str= EventStr
     self.created= datetime.now()
     # Initialising Area parent
-    self.__area_obj= Area.__init__(self, self.__area)
+    self.area_obj= Area.__init__(self, self.__area)
     # Ar modifier
     if (EventStr[0:2] == 'AA') and (len(EventStr) == 5) :
         self.call_str = self.call_str + 'I'
@@ -424,10 +424,10 @@ class AreaEvent(Area):
       raise TypeError("Area event should be string")
 
   def __str__(self):
-    return "Area event: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__area_obj.name)
+    return "Area event: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.area_obj.name)
   def __del__(self):
     if self.call_str and self.created :
-        logger.debug("Area event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__area_obj.name))
+        logger.debug("Area event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.area_obj.name))
 
 
 class KeySwitchEvent(KeySwitch):
