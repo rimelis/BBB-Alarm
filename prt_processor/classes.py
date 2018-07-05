@@ -94,7 +94,7 @@ class MQTTClient(object):
   def OnPublish(self, p_client, p_userdata, p_message):
       self.__topic = p_message.topic
       self.__payload = p_message.payload.decode('utf-8')
-      logger.info("MQTT Message published > " + self.__topic + " : " + self.__payload)
+      logger.debug("MQTT Message published > " + self.__topic + " : " + self.__payload)
 
   def publish(self, p_topic, p_payload):
       self.__client.publish(p_topic, p_payload)
@@ -105,6 +105,7 @@ class MQTTClient(object):
     self.__client.username_pw_set(p_username, password=p_password)
     self.__client.on_connect = self.OnConnect
     self.__client.on_message = self.OnMessage
+    self.__client.on_publish = self.OnPublish
     self.__client.connect(p_broker_address, port=p_broker_port, keepalive=60)
     self.__client.loop_start()
 
