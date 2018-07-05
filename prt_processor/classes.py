@@ -442,7 +442,7 @@ class KeySwitchEvent(KeySwitch):
                     self.__id = int(EventStr[3:5])
                 except ValueError:
                     raise TypeError("Utility key event conversion error - wrong id")
-                self.__keyswitch_obj= KeySwitch.__init__(self, self.__id)
+                self.__keyswitch_obj= KeySwitch(self.__id)
             else :
                 raise TypeError("Utility key event length should be 5 bytes")
         else :
