@@ -94,7 +94,7 @@ if __name__ == '__main__':
                         if ra:
                             logger.debug("Request Area answer received.")
                             ra.answer(instr)
-                            mqtt.publish(ra.mqtt_topic, ra.payload)
+####                            mqtt.publish(ra.mqtt_topic, ra.payload)
                             RAList.remove(ra)
                             del ra
                         else :

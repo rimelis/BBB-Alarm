@@ -350,11 +350,20 @@ class SystemEvent(object):
 
 
 
-class AreaEvent(object):
+class AreaEvent(Area):
   def __init__(self, EventStr):
     self.call_str= None
     self.created= None
     self.desc= None
+    # Initialising Area parent
+    try:
+        self.__area = int(EventStr[3:5])
+    except ValueError:
+        raise TypeError("Area conversion error - wrong area")
+    Area.__init__(self, self.__area)
+    if self.__area < 1 or self.__area > 4:
+        raise TypeError("Area must be between 1..4")
+
     if EventStr[0:2] == 'RA' :
         if len(EventStr) == 5 :
             self.desc= 'Area request'
@@ -402,16 +411,18 @@ class AreaEvent(object):
               raise TypeError("Area must be between 1..4")
           if EventStr[0:2] == 'RA' :
               if len(EventStr) == 12 :
-                 self.__area_obj= SLists.getArea(self.__area)
                  self.__mode= EventStr[5:6]
                  self.__status= EventStr[6:12]
-                 self.__area_obj.update(self.__mode, self.__status)
+ ###                 self.__area_obj= SLists.getArea(self.__area)
+ ###                 self.__area_obj.update(self.__mode, self.__status)
+                 Area.update(self.__mode, self.__status)
               else :
                   raise TypeError("Request event answer length must be 12 bytes")
           elif (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
               if EventStr[5:8] == '&ok' :
-                  self.__area_obj = SLists.getArea(self.__area)
-                  self.__area_obj.update(self.__mode)
+###                  self.__area_obj = SLists.getArea(self.__area)
+###                  self.__area_obj.update(self.__mode)
+                  Area.update(self.__mode)
               elif EventStr[5:10] != '&fail' :
                   raise TypeError("Area event answer AA or AD should end with &ok or &fail")
 
@@ -421,10 +432,12 @@ class AreaEvent(object):
       raise TypeError("Area event should be string")
 
   def __str__(self):
-    return "Area event: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__area_obj.name)
+###    return "Area event: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__area_obj.name)
+     return "Area event: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, Area.name)
   def __del__(self):
     if self.call_str and self.created :
-        logger.debug("Area event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__area_obj.name))
+###        logger.debug("Area event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__area_obj.name))
+        logger.debug("Area event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, Area.name))
 
 
 class KeySwitchEvent(object):
