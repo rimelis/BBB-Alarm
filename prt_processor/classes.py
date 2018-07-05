@@ -7,6 +7,7 @@ from datetime import datetime
 import time
 import logging
 import paho.mqtt.client as MQTT
+import json
 
 
 """
@@ -165,9 +166,29 @@ class Area(object):
     finally:
        if self.__db_connection:
          self.__db_connection.close()
-    self.payload = self.mode + self.status
-
-
+    # Getting mode string
+    if self.mode == 'D' :
+        self.__mode_str = 'Disarmed'
+    elif self.mode == 'A' :
+        self.__mode_str = 'Armed'
+    elif self.mode == 'F' :
+        self.__mode_str = 'Force armed'
+    elif self.mode == 'S' :
+        self.__mode_str = 'Stay armed'
+    elif self.mode == 'I' :
+        self.__mode_str = 'Instant armed'
+    # Getting status string
+    if self.status == 'OOOOOO' :
+        self.__status= 'Ready'
+    else :
+        self.__status_str = None
+        if self.status[0:1] == 'M' :
+            self.__status_str= 'Zone in memory'
+        if self.status[1:1] == 'T' :
+            self.__status_str= self.__status_str + ('; ' if not self.__status_str) + 'Trouble'
+        if self.status[2:1] == 'N' :
+            self.__status_str= self.__status_str + ('; ' if not self.__status_str) + 'Not ready'
+    self.payload = json.dump(dict([('mode', self.__mode_str), ('status', self.__status_str)]))
 
 class Zone(object):
   def __init__(self, id):
