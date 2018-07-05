@@ -192,7 +192,7 @@ class Area(object):
                               ([
                                 ("datetime", self.last_refresh.strftime("%Y-%m-%d %H:%M:%S")),
                                 ("mode_str", l_mode_str),
-                                ("status_str", ';'.join(l_status_list)),
+                                ("status_str", '; '.join(l_status_list)),
                                 ("mode", self.mode),
                                 ("status", self.status),
                                ])
