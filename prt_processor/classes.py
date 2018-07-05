@@ -184,9 +184,9 @@ class Area(object):
         l_status_list = []
         if self.status[0:1] == 'M' :
             l_status_list.append('Zone in memory')
-        if self.status[1:1] == 'T' :
+        if self.status[1:2] == 'T' :
             l_status_list.append('Trouble')
-        if self.status[2:1] == 'N' :
+        if self.status[2:3] == 'N' :
             l_status_list.append('Not ready')
     self.payload = json.dumps(dict
                               ([
