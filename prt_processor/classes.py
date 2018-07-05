@@ -188,7 +188,15 @@ class Area(object):
             l_status_list.append('Trouble')
         if self.status[2:1] == 'N' :
             l_status_list.append('Not ready')
-    self.payload = json.dumps(dict([("mode", l_mode_str), ("status", ';'.join(l_status_list))]))
+    self.payload = json.dumps(dict
+                              ([self.last_refresh.strftime("%Y-%m-%d %H:%M:%S"),
+                                    ("mode_str", l_mode_str),
+                                    ("status_str", ';'.join(l_status_list)),
+                                    ("mode", self.mode),
+                                    ("status", self.status),
+                                    ]
+                               )
+                              )
 
 class Zone(object):
   def __init__(self, id):
