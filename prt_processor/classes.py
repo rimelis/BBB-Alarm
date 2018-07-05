@@ -386,8 +386,8 @@ class AreaEvent(Area):
     self.call_str= EventStr
     self.created= datetime.now()
     # Initialising Area parent
-    self.area_obj= Area.__init__(self, self.__area)
-    # Ar modifier
+    self.area_obj= Area.__init__(self.__area)
+    # Arming modifier
     if (EventStr[0:2] == 'AA') and (len(EventStr) == 5) :
         self.call_str = self.call_str + 'I'
     # Disarm modifier
