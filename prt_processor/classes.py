@@ -355,14 +355,6 @@ class AreaEvent(Area):
     self.call_str= None
     self.created= None
     self.desc= None
-    # Initialising Area parent
-    try:
-        self.__area = int(EventStr[3:5])
-    except ValueError:
-        raise TypeError("Area conversion error - wrong area")
-    self.__area_obj= Area.__init__(self, self.__area)
-    if self.__area < 1 or self.__area > 4:
-        raise TypeError("Area must be between 1..4")
 
     if EventStr[0:2] == 'RA' :
         if len(EventStr) == 5 :
@@ -393,9 +385,12 @@ class AreaEvent(Area):
        raise TypeError("Area Event error: area must be between 1..4")
     self.call_str= EventStr
     self.created= datetime.now()
-    self.__area_obj = SLists.getArea(self.__area)
+    # Initialising Area parent
+    self.__area_obj= Area.__init__(self, self.__area)
+    # Ar modifier
     if (EventStr[0:2] == 'AA') and (len(EventStr) == 5) :
         self.call_str = self.call_str + 'I'
+    # Disarm modifier
     if (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
         self.call_str = self.call_str + '<passw>'
         self.__mode= self.call_str[5:6]
@@ -413,13 +408,11 @@ class AreaEvent(Area):
               if len(EventStr) == 12 :
                  self.__mode= EventStr[5:6]
                  self.__status= EventStr[6:12]
- ###                 self.__area_obj= SLists.getArea(self.__area)
                  self.__area_obj.update(self.__mode, self.__status)
               else :
                   raise TypeError("Request event answer length must be 12 bytes")
           elif (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
               if EventStr[5:8] == '&ok' :
-###                  self.__area_obj = SLists.getArea(self.__area)
                   self.__area_obj.update(self.__mode)
                   Area.update(self.__mode)
               elif EventStr[5:10] != '&fail' :
@@ -432,14 +425,12 @@ class AreaEvent(Area):
 
   def __str__(self):
     return "Area event: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__area_obj.name)
-###     return "Area event: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, super().name)
   def __del__(self):
     if self.call_str and self.created :
         logger.debug("Area event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__area_obj.name))
-###        logger.debug("Area event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, super().name))
 
 
-class KeySwitchEvent(object):
+class KeySwitchEvent(KeySwitch):
     def __init__(self, EventStr):
         self.call_str = None
         self.created = None
@@ -451,6 +442,7 @@ class KeySwitchEvent(object):
                     self.__id = int(EventStr[3:5])
                 except ValueError:
                     raise TypeError("Utility key event conversion error - wrong id")
+                self.__keyswitch_obj= KeySwitch.__init__(self, self.__id)
             else :
                 raise TypeError("Utility key event length should be 5 bytes")
         else :
@@ -468,7 +460,6 @@ class KeySwitchEvent(object):
         finally:
             if self.__db_connection:
               self.__db_connection.close()
-        self.__keyswitch_obj = SLists.getKeySwitch(self.__id)
 
     def answer(self, EventStr):
         if isinstance(EventStr, str):
@@ -485,7 +476,6 @@ class KeySwitchEvent(object):
                 raise TypeError("Utility key event answer should start with UK")
         else:
             raise TypeError("Utility key event answer should be string")
-        self.__keyswitch_obj = SLists.getKeySwitch(self.__id)
 
     def __str__(self):
         return "Utility key event: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__keyswitch_obj.name)
