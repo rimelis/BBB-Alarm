@@ -188,6 +188,12 @@ class Area(object):
             l_status_list.append('Trouble')
         if self.status[2:3] == 'N' :
             l_status_list.append('Not ready')
+        if self.status[3:4] == 'P':
+            l_status_list.append('In programming')
+        if self.status[4:5] == 'A':
+            l_status_list.append('In alarm')
+        if self.status[5:6] == 'S':
+            l_status_list.append('Strobe')
     self.payload = json.dumps(dict
                               ([
                                 ("datetime", self.last_refresh.strftime("%Y-%m-%d %H:%M:%S")),
