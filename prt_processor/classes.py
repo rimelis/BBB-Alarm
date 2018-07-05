@@ -91,13 +91,10 @@ class MQTTClient(object):
         self.__keyswitch_obj = SLists.getKeySwitch(self.__keyswitch_id)
         logger.debug(self.__keyswitch_obj)
 
-  def OnPublish(self, p_client, p_userdata, p_message):
-      self.__topic = p_message.topic
-      self.__payload = p_message.payload.decode('utf-8')
-      logger.debug("MQTT Message published > " + self.__topic + " : " + self.__payload)
-
   def publish(self, p_topic, p_payload):
-      self.__client.publish(p_topic, p_payload)
+      self.__published_msg_info= self.__client.publish(p_topic, p_payload, retain=True)
+      self.__published_msg_info.wait_for_publish()
+      logger.debug("MQTT Message published > " + p_topic + " : " + p_payload)
 
   def __init__(self, p_broker_address, p_broker_port, p_username, p_password):
     logger.debug("MQTT client initializing.")
@@ -105,7 +102,6 @@ class MQTTClient(object):
     self.__client.username_pw_set(p_username, password=p_password)
     self.__client.on_connect = self.OnConnect
     self.__client.on_message = self.OnMessage
-    self.__client.on_publish = self.OnPublish
     self.__client.connect(p_broker_address, port=p_broker_port, keepalive=60)
     self.__client.loop_start()
 
