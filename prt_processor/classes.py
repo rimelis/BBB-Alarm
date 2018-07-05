@@ -108,6 +108,7 @@ class MQTTClient(object):
       self.__client.loop_stop()
 
 
+
 class Area(object):
   def __init__(self, id):
     self.id= id
@@ -165,6 +166,7 @@ class Area(object):
     self.payload = self.mode + self.status
 
 
+
 class Zone(object):
   def __init__(self, id):
     self.id= id
@@ -216,6 +218,7 @@ class Zone(object):
      finally:
         if self.__db_connection:
           self.__db_connection.close()
+
 
 
 class KeySwitch(object):
@@ -380,15 +383,15 @@ class AreaEvent(Area):
     else :
         raise TypeError("Area event should start with RA, AA, AD")
     try:
-       self.__area= int(EventStr[3:5])
+       self.__area_id= int(EventStr[3:5])
     except ValueError:
        raise TypeError("Area Event conversion error - wrong area")
-    if self.__area < 1 or self.__area > 4 :
+    if self.__area_id < 1 or self.__area_id > 4 :
        raise TypeError("Area Event error: area must be between 1..4")
     self.call_str= EventStr
     self.created= datetime.now()
     # Initialising Area parent
-    self.__area_obj= Area(self.__area)
+    self.area= Area(self.__area_id)
     # Arming modifier
     if (EventStr[0:2] == 'AA') and (len(EventStr) == 5) :
         self.call_str = self.call_str + 'I'
@@ -401,22 +404,21 @@ class AreaEvent(Area):
     if isinstance(EventStr, str):
       if (EventStr[0:2] == 'RA') or (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
           try:
-              self.__area = int(EventStr[3:5])
+              self.__area_id = int(EventStr[3:5])
           except ValueError:
               raise TypeError("Area conversion error - wrong area")
-          if self.__area < 1 or self.__area > 4:
+          if self.__area_id < 1 or self.__area_id > 4:
               raise TypeError("Area must be between 1..4")
           if EventStr[0:2] == 'RA' :
               if len(EventStr) == 12 :
                  self.__mode= EventStr[5:6]
                  self.__status= EventStr[6:12]
-                 self.__area_obj.update(self.__mode, self.__status)
+                 self.area.update(self.__mode, self.__status)
               else :
                   raise TypeError("Request event answer length must be 12 bytes")
           elif (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
               if EventStr[5:8] == '&ok' :
-                  self.__area_obj.update(self.__mode)
-                  Area.update(self.__mode)
+                  self.area.update(self.__mode)
               elif EventStr[5:10] != '&fail' :
                   raise TypeError("Area event answer AA or AD should end with &ok or &fail")
 
@@ -426,10 +428,10 @@ class AreaEvent(Area):
       raise TypeError("Area event should be string")
 
   def __str__(self):
-    return "Area event: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__area_obj.name)
+    return "Area event: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.area.name)
   def __del__(self):
     if self.call_str and self.created :
-        logger.debug("Area event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__area_obj.name))
+        logger.debug("Area event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.area.name))
 
 
 class KeySwitchEvent(KeySwitch):
