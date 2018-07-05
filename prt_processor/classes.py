@@ -29,7 +29,6 @@ G000N017A002
 
 logger = logging.getLogger("prt_processor_logger")
 
-Cpassw= '4521'
 
 CommDict= {'VO':'Virtual input open',\
            'VC':'Virtual input closed',\
@@ -281,7 +280,6 @@ class KeySwitch(object):
     def __str__(self):
         return "Keyswitch: {0:s} ({1:03d})".format(self.name, self.id)
 
-"""
 class SystemLists(object):
     def __init__(self):
         self.Zones = [Zone(x) for x in range(48)]
@@ -295,10 +293,8 @@ class SystemLists(object):
         return next((x for x in self.KeySwitches if x.id == id), None)
 
 SLists = SystemLists()
-"""
 
-
-class SystemEvent(Area, Zone, KeySwitch):
+class SystemEvent(object):
   def __init__(self, EventStr):
     self.area_desc = 'None'
     self.__area_obj = None
@@ -343,18 +339,18 @@ class SystemEvent(Area, Zone, KeySwitch):
 
                """ Srities duomenys """
                if self.area > 0:
-                 self.__area_obj = Area(self.area)
+                 self.__area_obj = SLists.getArea(self.area)
                  if self.__area_obj:
                      self.area_desc= self.__area_obj.name
 
                """ Zonos duomenys """
                if self.eventtype == 'Z':
-                 self.__zone_obj = Zone(self.event)
+                 self.__zone_obj = SLists.getZone(self.event)
 
 
                """ Keyswitch duomenys """
                if self.eventtype == 'K':
-                   self.__keyswitch_obj = KeySwitch(self.event)
+                   self.__keyswitch_obj = SLists.getKeySwitch(self.event)
 
 
              except sqlite.Error as e:
@@ -392,7 +388,7 @@ class SystemEvent(Area, Zone, KeySwitch):
 
 
 
-class AreaEvent(Area):
+class AreaEvent(object):
   def __init__(self, EventStr):
     self.call_str= None
     self.created= None
@@ -427,14 +423,13 @@ class AreaEvent(Area):
        raise TypeError("Area Event error: area must be between 1..4")
     self.call_str= EventStr
     self.created= datetime.now()
-    # Initialising Area parent
-    self.area= Area(self.__area_id)
-    # Arming modifier
+    self.area= SLists.getArea(self.__area_id)
+    # Setting Instant arming in case unset
     if (EventStr[0:2] == 'AA') and (len(EventStr) == 5) :
         self.call_str = self.call_str + 'I'
-    # Disarm modifier
+    # Add password
     if (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
-        self.call_str = self.call_str + '<passw>'
+        self.call_str = self.call_str + COMMON_PANEL_PASSWORD
         self.__mode= self.call_str[5:6]
 
   def answer(self, EventStr):
@@ -471,7 +466,7 @@ class AreaEvent(Area):
         logger.debug("Area event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.area.name))
 
 
-class KeySwitchEvent(KeySwitch):
+class KeySwitchEvent(object):
     def __init__(self, EventStr):
         self.call_str = None
         self.created = None
@@ -483,7 +478,7 @@ class KeySwitchEvent(KeySwitch):
                     self.__id = int(EventStr[3:5])
                 except ValueError:
                     raise TypeError("Utility key event conversion error - wrong id")
-                self.__keyswitch_obj= KeySwitch(self.__id)
+                self.__keyswitch_obj= SLists.getKeySwitch(self.__id)
             else :
                 raise TypeError("Utility key event length should be 5 bytes")
         else :

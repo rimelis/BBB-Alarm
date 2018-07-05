@@ -25,6 +25,8 @@ MQTT_BROKER_PORT= int(config['MQTT_BROKER']['port'])
 MQTT_BROKER_USER= config['MQTT_BROKER']['user']
 MQTT_BROKER_PASSWORD= config['MQTT_BROKER']['password']
 
+COMMON_PANEL_PASSWORD= config['COMMON']['panel_password']
+
 # Configure logging to log to a file, making a new file at midnight and keeping the last 7 day's data
 # Give the logger a unique name (good practice)
 logger = logging.getLogger("prt_processor_logger")
