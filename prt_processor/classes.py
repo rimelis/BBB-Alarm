@@ -179,7 +179,7 @@ class Area(object):
         l_mode_str = 'Instant armed'
     # Getting status string
     if self.status == 'OOOOOO' :
-        self.__status= 'Ready'
+        l_status_list = ['Ready']
     else :
         l_status_list = []
         if self.status[0:1] == 'M' :
@@ -188,7 +188,7 @@ class Area(object):
             l_status_list.append('Trouble')
         if self.status[2:1] == 'N' :
             l_status_list.append('Not ready')
-    self.payload = json.dump(dict([('mode', l_mode_str), ('status', ';'.join(l_status_list))]))
+    self.payload = json.dump(dict([("mode", l_mode_str), ("status", ';'.join(l_status_list))]))
 
 class Zone(object):
   def __init__(self, id):
