@@ -189,13 +189,13 @@ class Area(object):
         if self.status[2:1] == 'N' :
             l_status_list.append('Not ready')
     self.payload = json.dumps(dict
-                              ([self.last_refresh.strftime("%Y-%m-%d %H:%M:%S"),
-                                    ("mode_str", l_mode_str),
-                                    ("status_str", ';'.join(l_status_list)),
-                                    ("mode", self.mode),
-                                    ("status", self.status),
-                                    ]
-                               )
+                              ([
+                                ("datetime", self.last_refresh.strftime("%Y-%m-%d %H:%M:%S")),
+                                ("mode_str", l_mode_str),
+                                ("status_str", ';'.join(l_status_list)),
+                                ("mode", self.mode),
+                                ("status", self.status),
+                               ])
                               )
 
 class Zone(object):
