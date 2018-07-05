@@ -433,11 +433,11 @@ class AreaEvent(Area):
 
   def __str__(self):
 ###    return "Area event: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__area_obj.name)
-     return "Area event: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, Area.name)
+     return "Area event: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, super().name)
   def __del__(self):
     if self.call_str and self.created :
 ###        logger.debug("Area event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.__area_obj.name))
-        logger.debug("Area event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, Area.name))
+        logger.debug("Area event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, super().name))
 
 
 class KeySwitchEvent(object):
