@@ -241,7 +241,7 @@ class KeySwitch(object):
     def __str__(self):
         return "Keyswitch: {0:s} ({1:03d})".format(self.name, self.id)
 
-
+"""
 class SystemLists(object):
     def __init__(self):
         self.Zones = [Zone(x) for x in range(48)]
@@ -255,9 +255,15 @@ class SystemLists(object):
         return next((x for x in self.KeySwitches if x.id == id), None)
 
 SLists = SystemLists()
+"""
 
-class SystemEvent(object):
+
+class SystemEvent(Area, Zone, KeySwitch):
   def __init__(self, EventStr):
+    self.area_desc = 'None'
+    self.__area_obj = None
+    self.__zone_obj = None
+    self.__keyswitch_obj = None
     if isinstance(EventStr, str):
       if (len(EventStr) == 12) \
           and (EventStr[0:1] == 'G') \
@@ -296,24 +302,20 @@ class SystemEvent(object):
                     self.action= self.__db_row['action']
 
                """ Srities duomenys """
-               self.__area_obj= None
-               self.area_desc= 'None'
                if self.area > 0:
-                 self.__area_obj = SLists.getArea(self.area)
+                 self.__area_obj = Area(self.area)
                  if self.__area_obj:
                      self.area_desc= self.__area_obj.name
 
                """ Zonos duomenys """
                if self.eventtype == 'Z':
-                 self.__zone_obj = SLists.getZone(self.event)
-               else:
-                 self.__zone_obj= None
+                 self.__zone_obj = Zone(self.event)
+
 
                """ Keyswitch duomenys """
                if self.eventtype == 'K':
-                   self.__keyswitch_obj = SLists.getKeySwitch(self.event)
-               else:
-                   self.__keyswitch_obj = None
+                   self.__keyswitch_obj = KeySwitch(self.event)
+
 
              except sqlite.Error as e:
                raise TypeError("System event SQL error: %s:" % e.args[0])
