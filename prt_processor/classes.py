@@ -387,7 +387,6 @@ class AreaEvent(Area):
     self.created= datetime.now()
     # Initialising Area parent
     self.__area_obj= Area(self.__area)
-    print(self.area_obj)
     # Arming modifier
     if (EventStr[0:2] == 'AA') and (len(EventStr) == 5) :
         self.call_str = self.call_str + 'I'
