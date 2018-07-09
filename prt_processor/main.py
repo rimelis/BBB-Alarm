@@ -81,7 +81,7 @@ if __name__ == '__main__':
         parity=serial.PARITY_NONE,
         stopbits=serial.STOPBITS_ONE,
         bytesize=serial.EIGHTBITS,
-        timeout=None
+        timeout=0.5
     )
     sio = io.TextIOWrapper(io.BufferedRWPair(ser, ser))
 
@@ -90,7 +90,7 @@ if __name__ == '__main__':
         try:
           while True:
 #            instr= input(">")
-            instr = ser.readline()
+            instr = sio.readline()
             if len(instr) > 0 :
               logger.debug(">"+instr)
               if instr == "exit" :
