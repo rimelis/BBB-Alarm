@@ -68,10 +68,11 @@ class MQTTClient(object):
         logger.error("Connection to MQTT failed!")
 
   def OnMessage(self, p_client, p_userdata, p_message):
-    self.__keyswitch_id = None
     self.__topic= p_message.topic
     self.__payload= p_message.payload.decode('utf-8')
     logger.info("MQTT Message received > " + self.__topic + " : " + self.__payload)
+    # checking topics of
+    self.__keyswitch_id = None
     try:
       """ Getting keyswitch regarding received topic and payload"""
       self.__db_connection = sqlite.connect('db.sqlite')
@@ -203,6 +204,8 @@ class Area(object):
                                ])
                               )
 
+
+
 class Zone(object):
   def __init__(self, id):
     self.id= id
@@ -280,6 +283,8 @@ class KeySwitch(object):
     def __str__(self):
         return "Keyswitch: {0:s} ({1:03d})".format(self.name, self.id)
 
+
+
 class SystemLists(object):
     def __init__(self):
         self.Zones = [Zone(x) for x in range(48)]
@@ -293,6 +298,8 @@ class SystemLists(object):
         return next((x for x in self.KeySwitches if x.id == id), None)
 
 SLists = SystemLists()
+
+
 
 class SystemEvent(object):
   def __init__(self, EventStr):
