@@ -91,13 +91,14 @@ class MQTTClient(object):
     if self.__keyswitch_id :
         self.__keyswitch_obj = SLists.getKeySwitch(self.__keyswitch_id)
         logger.debug(self.__keyswitch_obj)
+      #  self.__serial_queue
 
   def publish(self, p_topic, p_payload):
       self.__published_msg_info= self.__client.publish(p_topic, p_payload, retain=True)
       self.__published_msg_info.wait_for_publish()
       logger.debug("MQTT Message published > " + p_topic + " : " + p_payload)
 
-  def __init__(self, p_broker_address, p_broker_port, p_username, p_password):
+  def __init__(self, p_broker_address, p_broker_port, p_username, p_password, p_serial_queue):
     logger.debug("MQTT client initializing.")
     self.__client= MQTT.Client(client_id="PRT_processor_client", clean_session=False)
     self.__client.username_pw_set(p_username, password=p_password)
@@ -105,6 +106,7 @@ class MQTTClient(object):
     self.__client.on_message = self.OnMessage
     self.__client.connect(p_broker_address, port=p_broker_port, keepalive=60)
     self.__client.loop_start()
+    self.__serial_queue= p_serial_queue
 
   def __del__(self):
       self.__client.disconnect()

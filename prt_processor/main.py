@@ -1,11 +1,11 @@
 import serial
-import io
 import time
 import logging
 import logging.handlers
 import configparser
 from os import path
 import traceback
+import Queue
 
 from classes import Area, Zone, KeySwitch, SystemEvent, AreaEvent, KeySwitchEvent, MQTTClient
 
@@ -61,6 +61,16 @@ def log_app_error(e: BaseException, level=logging.ERROR) -> None:
         traceback_lines.extend(line.splitlines())
     logger.log(level, traceback_lines.__str__())
 
+# Custom serial redaline to carry CR instead of LN
+def SerialReadLine(ser):
+    str = ""
+    while True:
+        ch = ser.read()
+        if(ch == b'\r' or ch == b'' and len(str) == 0):
+            break
+        str += ch.decode('ascii')
+    return str
+
 # Global MQTT
 mqtt= MQTTClient(MQTT_BROKER_ADDRESS, MQTT_BROKER_PORT, MQTT_BROKER_USER, MQTT_BROKER_PASSWORD)
 
@@ -75,22 +85,22 @@ if __name__ == '__main__':
     ADList= []
     KSList= []
 
+    SerialOutQueue = Queue.Queue()
+
     ser = serial.Serial(
         port=COM_TTY_PORT,
         baudrate=COM_TTY_BAUD_RATE,
         parity=serial.PARITY_NONE,
         stopbits=serial.STOPBITS_ONE,
         bytesize=serial.EIGHTBITS,
-        timeout=0.5
+        timeout=0
     )
-    sio = io.TextIOWrapper(io.BufferedRWPair(ser, ser))
 
     if ser.isOpen():
         logger.info("Serial is open. Start reading")
         try:
           while True:
-#            instr= input(">")
-            instr = sio.readline()
+            instr = SerialReadLine(ser)
             if len(instr) > 0 :
               logger.debug(">"+instr)
               if instr == "exit" :
@@ -184,6 +194,7 @@ if __name__ == '__main__':
                       log_app_error(e)
               else:
                   logger.debug("Unknown input.")
+
             time.sleep(0.1)
         except KeyboardInterrupt :
             print("Stopped.")
