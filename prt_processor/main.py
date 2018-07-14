@@ -102,10 +102,15 @@ if __name__ == '__main__':
     if ser.isOpen():
         logger.info("SERIAL {0:s} is OPENED.".format(COM_TTY_PORT))
         try:
+          strCommand= ''
           while True:
             # reading serial
             instr = serial_read_line(ser)
-            if len(instr) > 0 :
+            if len(instr) == 0 :
+                if len(strCommand) > 0:
+                    instr= strCommand
+                    strCommand= ''
+            else:
               logger.debug(">"+instr)
               if instr == "exit" :
                   break
