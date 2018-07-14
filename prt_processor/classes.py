@@ -22,6 +22,8 @@ G000N020A002
 G015N002A003  - nerealizuota
 G001N017A002
 G000N017A002
+G048N001A000
+G001N019A001
 """
 
 #ZoneList= []
@@ -41,7 +43,7 @@ CommDict= {'VO':'Virtual input open',\
 class MQTTClient(object):
   def OnConnect(self, p_client, p_userdata, p_flags, p_rc):
     if p_rc == 0:
-        logger.debug("Connected to MQTT broker.")
+        logger.debug("MQTT CONN")
         try:
             self.__db_connection = sqlite.connect('db.sqlite')
             self.__db_connection.row_factory = sqlite.Row
@@ -50,15 +52,13 @@ class MQTTClient(object):
             for self.__db_row in \
                     self.__db_cursor.execute("SELECT DISTINCT mqtt_topic FROM keyswitches WHERE direction = 'IN'"):
                 self.__topic = self.__db_row['mqtt_topic'] + "/komanda"
-                logger.info("MQTT keyswitch subscribe : > " + self.__topic)
-                self.__client.subscribe(self.__topic)
+                self.subscribe(self.__topic)
             # Areas subscribes
             for self.__db_row in \
                     self.__db_cursor.execute("SELECT mqtt_topic FROM areas"):
                 self.__topic = self.__db_row['mqtt_topic'] + "/komanda"
-                logger.info("MQTT area subscribe : > " + self.__topic)
-                self.__client.subscribe(self.__topic)
-
+                self.subscribe(self.__topic)
+            logger.debug("-----------------------------")
         except sqlite.Error as e:
             raise TypeError("SQL error: %s:" % e.args[0])
         finally:
@@ -71,7 +71,7 @@ class MQTTClient(object):
     self.__topic= p_message.topic
     self.__payload= p_message.payload.decode('utf-8')
     logger.info("MQTT Message received > " + self.__topic + " : " + self.__payload)
-    # checking topics of
+    # checking topics from keyswitch table
     self.__keyswitch_id = None
     try:
       """ Getting keyswitch regarding received topic and payload"""
@@ -89,28 +89,33 @@ class MQTTClient(object):
       if self.__db_connection:
         self.__db_connection.close()
     if self.__keyswitch_id :
+        # triggering keyswitch
         self.__keyswitch_obj = SLists.getKeySwitch(self.__keyswitch_id)
-        logger.debug(self.__keyswitch_obj)
-      #  self.__serial_queue
+        self.__keyswitch_obj.trigger(self.__serial_queue)
 
   def publish(self, p_topic, p_payload):
       self.__published_msg_info= self.__client.publish(p_topic, p_payload, retain=True)
       self.__published_msg_info.wait_for_publish()
-      logger.debug("MQTT Message published > " + p_topic + " : " + p_payload)
+      logger.debug("MQTT PUB: > " + p_topic + " : " + p_payload)
 
-  def __init__(self, p_broker_address, p_broker_port, p_username, p_password, p_serial_queue):
-    logger.debug("MQTT client initializing.")
+  def subscribe(self, p_topic):
+      self.__client.subscribe(p_topic)
+      logger.info("MQTT SUB: > " + p_topic)
+
+  def __init__(self, p_broker_address, p_broker_port, p_username, p_password, p_serial_out_queue):
+    logger.debug("MQTT INIT")
     self.__client= MQTT.Client(client_id="PRT_processor_client", clean_session=False)
     self.__client.username_pw_set(p_username, password=p_password)
     self.__client.on_connect = self.OnConnect
     self.__client.on_message = self.OnMessage
     self.__client.connect(p_broker_address, port=p_broker_port, keepalive=60)
     self.__client.loop_start()
-    self.__serial_queue= p_serial_queue
+    self.__serial_queue= p_serial_out_queue
 
   def __del__(self):
       self.__client.disconnect()
       self.__client.loop_stop()
+
 
 
 
@@ -280,8 +285,9 @@ class KeySwitch(object):
         finally:
             if self.__db_connection:
                 self.__db_connection.close()
-    def trigger(self):
-        return "UK{0:3d}".format(self.id)
+    def trigger(self, p_queue):
+        logger.debug("Triggering keyswitch: {0:s} ({1:03d})".format(self.name, self.id))
+        p_queue.put("UK{0:03d}\r".format(self.id))
     def __str__(self):
         return "Keyswitch: {0:s} ({1:03d})".format(self.name, self.id)
 

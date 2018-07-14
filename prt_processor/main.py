@@ -5,7 +5,7 @@ import logging.handlers
 import configparser
 from os import path
 import traceback
-import Queue
+import queue
 
 from classes import Area, Zone, KeySwitch, SystemEvent, AreaEvent, KeySwitchEvent, MQTTClient
 
@@ -53,7 +53,8 @@ logger.addHandler(handler)
 consoleHandler = logging.StreamHandler()
 logger.addHandler(consoleHandler)
 
-#### Exception logger into one log line
+
+# Exception logger into one log line
 def log_app_error(e: BaseException, level=logging.ERROR) -> None:
     e_traceback = traceback.format_exception(e.__class__, e, e.__traceback__)
     traceback_lines = []
@@ -61,8 +62,9 @@ def log_app_error(e: BaseException, level=logging.ERROR) -> None:
         traceback_lines.extend(line.splitlines())
     logger.log(level, traceback_lines.__str__())
 
+
 # Custom serial redaline to carry CR instead of LN
-def SerialReadLine(ser):
+def serial_read_line(ser):
     str = ""
     while True:
         ch = ser.read()
@@ -71,8 +73,6 @@ def SerialReadLine(ser):
         str += ch.decode('ascii')
     return str
 
-# Global MQTT
-mqtt= MQTTClient(MQTT_BROKER_ADDRESS, MQTT_BROKER_PORT, MQTT_BROKER_USER, MQTT_BROKER_PASSWORD)
 
 #####################################################################################################
 
@@ -80,12 +80,15 @@ if __name__ == '__main__':
     logger.debug("vvvvv---------v---------vvvvv")
     logger.info("Initializing...")
 
+    # Global MQTT and Serial output queue
+    SerialOutQueue = queue.Queue()
+
+    mqtt = MQTTClient(MQTT_BROKER_ADDRESS, MQTT_BROKER_PORT, MQTT_BROKER_USER, MQTT_BROKER_PASSWORD, SerialOutQueue)
+
     RAList= []
     AAList= []
     ADList= []
     KSList= []
-
-    SerialOutQueue = Queue.Queue()
 
     ser = serial.Serial(
         port=COM_TTY_PORT,
@@ -97,10 +100,11 @@ if __name__ == '__main__':
     )
 
     if ser.isOpen():
-        logger.info("Serial is open. Start reading")
+        logger.info("SERIAL {0:s} is OPENED.".format(COM_TTY_PORT))
         try:
           while True:
-            instr = SerialReadLine(ser)
+            # reading serial
+            instr = serial_read_line(ser)
             if len(instr) > 0 :
               logger.debug(">"+instr)
               if instr == "exit" :
@@ -194,6 +198,12 @@ if __name__ == '__main__':
                       log_app_error(e)
               else:
                   logger.debug("Unknown input.")
+
+            # writing to serial
+            if not SerialOutQueue.empty():
+                strCommand = SerialOutQueue.get()
+                if strCommand:
+                    ser.write(strCommand.encode('ascii'))
 
             time.sleep(0.1)
         except KeyboardInterrupt :
