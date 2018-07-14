@@ -204,6 +204,7 @@ if __name__ == '__main__':
                 strCommand = SerialOutQueue.get()
                 if strCommand:
                     ser.write(strCommand.encode('ascii'))
+                    ser.flush()
 
             time.sleep(0.1)
         except KeyboardInterrupt :

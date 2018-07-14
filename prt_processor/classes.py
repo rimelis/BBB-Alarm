@@ -70,7 +70,7 @@ class MQTTClient(object):
   def OnMessage(self, p_client, p_userdata, p_message):
     self.__topic= p_message.topic
     self.__payload= p_message.payload.decode('utf-8')
-    logger.info("MQTT Message received > " + self.__topic + " : " + self.__payload)
+    logger.info("MQTT RECV: > " + self.__topic + " : " + self.__payload)
     # checking topics from keyswitch table
     self.__keyswitch_id = None
     try:
