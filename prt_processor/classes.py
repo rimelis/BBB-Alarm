@@ -115,6 +115,7 @@ class MQTTClient(object):
   def __del__(self):
       self.__client.disconnect()
       self.__client.loop_stop()
+      logger.debug('MQTT STOP')
 
 
 
@@ -287,7 +288,7 @@ class KeySwitch(object):
                 self.__db_connection.close()
     def trigger(self, p_queue):
         logger.debug("Triggering keyswitch: {0:s} ({1:03d})".format(self.name, self.id))
-        p_queue.put("UK{0:03d}\r".format(self.id))
+        p_queue.put("UK{0:03d}".format(self.id))
     def __str__(self):
         return "Keyswitch: {0:s} ({1:03d})".format(self.name, self.id)
 

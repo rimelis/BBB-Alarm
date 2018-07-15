@@ -82,6 +82,7 @@ if __name__ == '__main__':
 
     # Global MQTT and Serial output queue
     SerialOutQueue = queue.Queue()
+    serOutCommand= ''
 
     mqtt = MQTTClient(MQTT_BROKER_ADDRESS, MQTT_BROKER_PORT, MQTT_BROKER_USER, MQTT_BROKER_PASSWORD, SerialOutQueue)
 
@@ -90,148 +91,147 @@ if __name__ == '__main__':
     ADList= []
     KSList= []
 
-    ser = serial.Serial(
-        port=COM_TTY_PORT,
-        baudrate=COM_TTY_BAUD_RATE,
-        parity=serial.PARITY_NONE,
-        stopbits=serial.STOPBITS_ONE,
-        bytesize=serial.EIGHTBITS,
-        timeout=0
-    )
+    with serial.Serial(
+            port=COM_TTY_PORT,
+            baudrate=COM_TTY_BAUD_RATE,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            bytesize=serial.EIGHTBITS,
+            timeout=0
+        ) as ser:
 
-    if ser.isOpen():
-        logger.info("SERIAL {0:s} is OPENED.".format(COM_TTY_PORT))
-        try:
-          strCommand= ''
-          while True:
-            # reading serial
-            instr = serial_read_line(ser)
-            if len(instr) == 0 :
-                if len(strCommand) > 0:
-                    instr= strCommand
-                    strCommand= ''
-            else:
-              logger.debug(">"+instr)
-              if instr == "exit" :
-                  break
-              elif instr[0:1] == 'G' :
-                  try:
-                      se= SystemEvent(instr)
-                      print(se)
-                      del se
-                  except Exception as e:
-                      log_app_error(e)
-              elif instr[0:2] == 'RA' :
-                  try:
-                      if len(instr) == 5 :
-                        ra= next((x for x in RAList if x.call_str[0:5] == instr[0:5]), None)
-                        if not ra:
-                            ra= AreaEvent(instr)
-                            RAList.append(ra)
-                            logger.debug(ra)
-                      else :
-                          if len(instr) == 12 :
+        if ser.isOpen():
+            logger.info("SERIAL {0:s} is OPENED.".format(COM_TTY_PORT))
+            try:
+              while True:
+                if len(serOutCommand) > 0:
+                    # command send to serial on previous itteration is not processed so let's do it
+                    instr= serOutCommand
+                    serOutCommand= ''
+                else:
+                    # reading serial
+                    instr = serial_read_line(ser)
+                if len(instr) > 0:
+                  logger.debug(">"+instr)
+                  if instr == "exit" :
+                      break
+                  elif instr[0:1] == 'G' :
+                      try:
+                          se= SystemEvent(instr)
+                          logger.debug(se)
+                          del se
+                      except Exception as e:
+                          log_app_error(e)
+                  elif instr[0:2] == 'RA' :
+                      try:
+                          if len(instr) == 5 :
                             ra= next((x for x in RAList if x.call_str[0:5] == instr[0:5]), None)
-                            if ra:
-                                logger.debug("Request Area answer received.")
-                                ra.answer(instr)
-                                mqtt.publish(ra.area.mqtt_topic, ra.area.payload)
-                                RAList.remove(ra)
-                                del ra
-                            else :
-                                logger.debug("Request Area answer {0:s} has not found the initiator!".format(instr))
+                            if not ra:
+                                ra= AreaEvent(instr)
+                                RAList.append(ra)
+                                logger.debug(ra)
                           else :
-                              logger.debug("Wrong Request Area answer")
-                  except Exception as e:
-                      log_app_error(e)
-              elif instr[0:2] == 'AA':
-                  try:
-                      if (len(instr) >= 5) and (len(instr) <= 6) :
-                          aa = next((x for x in AAList if x.call_str[0:5] == instr[0:5]), None)
-                          if not aa:
-                              aa = AreaEvent(instr)
-                              AAList.append(aa)
-                              logger.debug(aa)
-                      else:
-                          aa = next((x for x in AAList if x.call_str[0:5] == instr[0:5]), None)
-                          if aa:
-                              logger.debug("Area arm answer received.")
-                              aa.answer(instr)
-                              AAList.remove(aa)
-                              del aa
+                              if len(instr) == 12 :
+                                ra= next((x for x in RAList if x.call_str[0:5] == instr[0:5]), None)
+                                if ra:
+                                    logger.debug("Request Area answer received.")
+                                    ra.answer(instr)
+                                    mqtt.publish(ra.area.mqtt_topic, ra.area.payload)
+                                    RAList.remove(ra)
+                                    del ra
+                                else :
+                                    logger.debug("Request Area answer {0:s} has not found the initiator!".format(instr))
+                              else :
+                                  logger.debug("Wrong Request Area answer")
+                      except Exception as e:
+                          log_app_error(e)
+                  elif instr[0:2] == 'AA':
+                      try:
+                          if (len(instr) >= 5) and (len(instr) <= 6) :
+                              aa = next((x for x in AAList if x.call_str[0:5] == instr[0:5]), None)
+                              if not aa:
+                                  aa = AreaEvent(instr)
+                                  AAList.append(aa)
+                                  logger.debug(aa)
                           else:
-                              logger.debug("Area arm answer {0:s} has not found the initiator!".format(instr))
-                  except Exception as e:
-                      log_app_error(e)
-              elif instr[0:2] == 'AD':
-                  try:
-                      if (len(instr) >= 5) and (len(instr) <= 6) :
-                          ad = next((x for x in ADList if x.call_str[0:5] == instr[0:5]), None)
-                          if not ad:
-                              ad = AreaEvent(instr)
-                              ADList.append(ad)
-                              logger.debug(ad)
-                      else:
-                          ad = next((x for x in ADList if x.call_str[0:5] == instr[0:5]), None)
-                          if ad:
-                              logger.debug("Area disarm answer received.")
-                              ad.answer(instr)
-                              ADList.remove(ad)
-                              del ad
+                              aa = next((x for x in AAList if x.call_str[0:5] == instr[0:5]), None)
+                              if aa:
+                                  logger.debug("Area arm answer received.")
+                                  aa.answer(instr)
+                                  AAList.remove(aa)
+                                  del aa
+                              else:
+                                  logger.debug("Area arm answer {0:s} has not found the initiator!".format(instr))
+                      except Exception as e:
+                          log_app_error(e)
+                  elif instr[0:2] == 'AD':
+                      try:
+                          if (len(instr) >= 5) and (len(instr) <= 6) :
+                              ad = next((x for x in ADList if x.call_str[0:5] == instr[0:5]), None)
+                              if not ad:
+                                  ad = AreaEvent(instr)
+                                  ADList.append(ad)
+                                  logger.debug(ad)
                           else:
-                              logger.debug("Area disarm answer {0:s} has not found the initiator!".format(instr))
-                  except Exception as e:
-                      log_app_error(e)
-              elif instr[0:2] == 'UK':
-                  try:
-                      if len(instr) == 5 :
-                          ks = next((x for x in KSList if x.call_str[0:5] == instr[0:5]), None)
-                          if not ks:
-                              ks = KeySwitchEvent(instr)
-                              KSList.append(ks)
-                              logger.debug(ks)
-                      else:
-                          ks = next((x for x in KSList if x.call_str[0:5] == instr[0:5]), None)
-                          if ks:
-                              logger.debug("Utility key event answer received.")
-                              ks.answer(instr)
-                              KSList.remove(ks)
-                              del ks
+                              ad = next((x for x in ADList if x.call_str[0:5] == instr[0:5]), None)
+                              if ad:
+                                  logger.debug("Area disarm answer received.")
+                                  ad.answer(instr)
+                                  ADList.remove(ad)
+                                  del ad
+                              else:
+                                  logger.debug("Area disarm answer {0:s} has not found the initiator!".format(instr))
+                      except Exception as e:
+                          log_app_error(e)
+                  elif instr[0:2] == 'UK':
+                      try:
+                          if len(instr) == 5 :
+                              ks = next((x for x in KSList if x.call_str[0:5] == instr[0:5]), None)
+                              if not ks:
+                                  ks = KeySwitchEvent(instr)
+                                  KSList.append(ks)
+                                  logger.debug(ks)
                           else:
-                              logger.debug("Utility key event answer {0:s} has not found the initiator!".format(instr))
-                  except Exception as e:
-                      log_app_error(e)
-              else:
-                  logger.debug("Unknown input.")
+                              ks = next((x for x in KSList if x.call_str[0:5] == instr[0:5]), None)
+                              if ks:
+                                  logger.debug("Utility key event answer received.")
+                                  ks.answer(instr)
+                                  KSList.remove(ks)
+                                  del ks
+                              else:
+                                  logger.debug("Utility key event answer {0:s} has not found the initiator!".format(instr))
+                      except Exception as e:
+                          log_app_error(e)
+                  else:
+                      logger.debug("Unknown input.")
 
-            # writing to serial
-            if not SerialOutQueue.empty():
-                strCommand = SerialOutQueue.get()
-                if strCommand:
-                    ser.write(strCommand.encode('ascii'))
-                    ser.flush()
+                # writing to serial
+                if not SerialOutQueue.empty():
+                    serOutCommand = SerialOutQueue.get()
+                    if serOutCommand:
+                        ser.write('{0:s}\r'.format(serOutCommand).encode('ascii'))
+                        ser.flush()
 
-            time.sleep(0.1)
-        except KeyboardInterrupt :
-            print("Stopped.")
-        except Exception as e:
-            log_app_error(e)
+                time.sleep(0.1)
+            except KeyboardInterrupt :
+                print("Stopped.")
+            except Exception as e:
+                log_app_error(e)
 
-    while len(RAList) > 0 :
-        ra= RAList.pop()
-        del ra
-    while len(AAList) > 0 :
-        aa= AAList.pop()
-        del aa
-    while len(ADList) > 0 :
-        ad= ADList.pop()
-        del ad
-    while len(KSList) > 0 :
-        ks= KSList.pop()
-        del ks
+        while len(RAList) > 0 :
+            ra= RAList.pop()
+            del ra
+        while len(AAList) > 0 :
+            aa= AAList.pop()
+            del aa
+        while len(ADList) > 0 :
+            ad= ADList.pop()
+            del ad
+        while len(KSList) > 0 :
+            ks= KSList.pop()
+            del ks
 
-    del mqtt
-    ser.close()
+        del mqtt
 
     logger.info("Stopped.")
     logger.debug("^^^^^---------^---------^^^^^")
