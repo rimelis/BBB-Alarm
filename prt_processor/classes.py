@@ -326,9 +326,9 @@ class SystemEvent(object):
 
                if self.action:
                    if self.action == 'Process_Utility_Key':
-                       if self.__keyswitch_obj.direction == 'OUT':
+                       if self.__keyswitch_obj.mqtt_direction == 'OUT':
                             comm.mqtt.publish(self.__keyswitch_obj.mqtt_topic + "/komanda",
-                                              self.__keyswitch_obj.payload,
+                                              self.__keyswitch_obj.mqtt_payload,
                                               p_retain=False)
 
              except sqlite.Error as e:
