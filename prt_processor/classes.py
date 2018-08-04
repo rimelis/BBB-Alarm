@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import sqlite3 as sqlite
-import sys
 from builtins import TypeError, isinstance
 from datetime import datetime
-import time
 import logging
-import paho.mqtt.client as MQTT
 import json
+import comm
+import settings
 
 
 """
@@ -26,10 +25,10 @@ G048N001A000
 G001N019A001
 """
 
-#ZoneList= []
-#AreaList= []
 
 logger = logging.getLogger("prt_processor_logger")
+
+
 
 
 CommDict= {'VO':'Virtual input open',\
@@ -39,83 +38,6 @@ CommDict= {'VO':'Virtual input open',\
            'AA':'Area Arm',\
            'AD':'Area Disarm',\
            'UK':'Utility Key'}
-
-class MQTTClient(object):
-  def OnConnect(self, p_client, p_userdata, p_flags, p_rc):
-    if p_rc == 0:
-        logger.debug("MQTT CONN")
-        try:
-            self.__db_connection = sqlite.connect('db.sqlite')
-            self.__db_connection.row_factory = sqlite.Row
-            self.__db_cursor = self.__db_connection.cursor()
-            # Keyswitch IN subscribes
-            for self.__db_row in \
-                    self.__db_cursor.execute("SELECT DISTINCT mqtt_topic FROM keyswitches WHERE direction = 'IN'"):
-                self.__topic = self.__db_row['mqtt_topic'] + "/komanda"
-                self.subscribe(self.__topic)
-            # Areas subscribes
-            for self.__db_row in \
-                    self.__db_cursor.execute("SELECT mqtt_topic FROM areas"):
-                self.__topic = self.__db_row['mqtt_topic'] + "/komanda"
-                self.subscribe(self.__topic)
-            logger.debug("-----------------------------")
-        except sqlite.Error as e:
-            raise TypeError("SQL error: %s:" % e.args[0])
-        finally:
-            if self.__db_connection:
-                self.__db_connection.close()
-    else:
-        logger.error("Connection to MQTT failed!")
-
-  def OnMessage(self, p_client, p_userdata, p_message):
-    self.__topic= p_message.topic
-    self.__payload= p_message.payload.decode('utf-8')
-    logger.info("MQTT RECV: > " + self.__topic + " : " + self.__payload)
-    # checking topics from keyswitch table
-    self.__keyswitch_id = None
-    try:
-      """ Getting keyswitch regarding received topic and payload"""
-      self.__db_connection = sqlite.connect('db.sqlite')
-      self.__db_connection.row_factory = sqlite.Row
-      self.__db_cursor = self.__db_connection.cursor()
-      self.__db_cursor.execute("SELECT id FROM keyswitches WHERE mqtt_topic = :topic AND direction = 'IN' AND payload = :payload",
-                               {"topic": self.__topic.replace('/komanda', ''), "payload": self.__payload})
-      self.__db_row = self.__db_cursor.fetchone()
-      if self.__db_row:
-          self.__keyswitch_id = self.__db_row['id']
-    except sqlite.Error as e:
-      raise TypeError("Keyswitch IN SQL error: %s:" % e.args[0])
-    finally:
-      if self.__db_connection:
-        self.__db_connection.close()
-    if self.__keyswitch_id :
-        # triggering keyswitch
-        self.__keyswitch_obj = SLists.getKeySwitch(self.__keyswitch_id)
-        self.__keyswitch_obj.trigger(self.__serial_queue)
-
-  def publish(self, p_topic, p_payload):
-      self.__published_msg_info= self.__client.publish(p_topic, p_payload, retain=True)
-      self.__published_msg_info.wait_for_publish()
-      logger.debug("MQTT PUB: > " + p_topic + " : " + p_payload)
-
-  def subscribe(self, p_topic):
-      self.__client.subscribe(p_topic)
-      logger.info("MQTT SUB: > " + p_topic)
-
-  def __init__(self, p_broker_address, p_broker_port, p_username, p_password, p_serial_out_queue):
-    logger.debug("MQTT INIT")
-    self.__client= MQTT.Client(client_id="PRT_processor_client", clean_session=False)
-    self.__client.username_pw_set(p_username, password=p_password)
-    self.__client.on_connect = self.OnConnect
-    self.__client.on_message = self.OnMessage
-    self.__client.connect(p_broker_address, port=p_broker_port, keepalive=60)
-    self.__client.loop_start()
-    self.__serial_queue= p_serial_out_queue
-
-  def __del__(self):
-      self.__client.disconnect()
-      self.__client.loop_stop()
-      logger.debug('MQTT STOP')
 
 
 
@@ -128,7 +50,7 @@ class Area(object):
     self.status= None
     self.last_refresh= None
     self.mqtt_topic= None
-    self.payload= None
+    self.mqtt_payload= None
     self.load_from_db()
 
   def load_from_db(self):
@@ -202,7 +124,7 @@ class Area(object):
             l_status_list.append('In alarm')
         if self.status[5:6] == 'S':
             l_status_list.append('Strobe')
-    self.payload = json.dumps(dict
+    self.mqtt_payload = json.dumps(dict
                               ([
                                 ("datetime", self.last_refresh.strftime("%Y-%m-%d %H:%M:%S")),
                                 ("mode_str", l_mode_str),
@@ -211,7 +133,24 @@ class Area(object):
                                 ("status", self.status),
                                ])
                               )
+    comm.mqtt.publish(self.mqtt_topic, self.mqtt_payload)
 
+  def processCommand(self, p_serial_queue, p_mqtt_command):
+      self.__serialCommand = None
+      self.mqtt_payload = p_mqtt_command
+      if self.mqtt_payload == 'STATUS' :
+          self.__serialCommand = "RA{0:03d}".format(self.id)
+      elif self.mqtt_payload == 'DISARM' :
+          self.__serialCommand = "AD{0:03d}{1:s}".format(self.id, settings.COMMON_PANEL_PASSWORD)
+      elif self.mqtt_payload == 'ARM_INSTANT' :
+          self.__serialCommand = "AA{0:03d}I{1:s}".format(self.id, settings.COMMON_PANEL_PASSWORD)
+      elif self.mqtt_payload == 'ARM_FORCE' :
+          self.__serialCommand = "AA{0:03d}F{1:s}".format(self.id, settings.COMMON_PANEL_PASSWORD)
+      if self.__serialCommand :
+        logger.debug("Process {0:s} area command : {1:s}".format(self.name, self.mqtt_payload))
+        p_serial_queue.put(self.__serialCommand)
+      else :
+        logger.error("Unknown {0:s} area command : {1:s}".format(self.name, self.mqtt_payload))
 
 
 class Zone(object):
@@ -272,23 +211,31 @@ class KeySwitch(object):
     def __init__(self, id):
         self.id= id
         self.name= None
+        self.mqtt_topic= None
+        self.mqtt_payload= None
+        self.mqtt_direction= None
         try:
             self.__db_connection = sqlite.connect('db.sqlite')
             self.__db_connection.row_factory = sqlite.Row
             self.__db_cursor = self.__db_connection.cursor()
-            self.__db_cursor.execute("SELECT desc FROM keyswitches WHERE id = :id",
+            self.__db_cursor.execute("SELECT desc, mqtt_topic, payload, direction FROM keyswitches WHERE id = :id",
                                      {"id": self.id})
             self.__db_row = self.__db_cursor.fetchone()
             if self.__db_row:
                 self.name = self.__db_row['desc']
+                self.mqtt_topic = self.__db_row['mqtt_topic']
+                self.mqtt_payload = self.__db_row['payload']
+                self.mqtt_direction = self.__db_row['direction']
         except sqlite.Error as e:
             raise TypeError("Key switch load SQL error: %s:" % e.args[0])
         finally:
             if self.__db_connection:
                 self.__db_connection.close()
-    def trigger(self, p_queue):
+
+    def trigger(self, p_serial_queue):
         logger.debug("Triggering keyswitch: {0:s} ({1:03d})".format(self.name, self.id))
-        p_queue.put("UK{0:03d}".format(self.id))
+        p_serial_queue.put("UK{0:03d}".format(self.id))
+
     def __str__(self):
         return "Keyswitch: {0:s} ({1:03d})".format(self.name, self.id)
 
@@ -299,12 +246,22 @@ class SystemLists(object):
         self.Zones = [Zone(x) for x in range(48)]
         self.Areas = [Area(x) for x in range(5)]
         self.KeySwitches = [KeySwitch(x) for x in range(8)]
+
     def getArea(self, id):
         return next((x for x in self.Areas if x.id == id), None)
+
+    def getAreaByMQTT(self, p_topic):
+        return next((x for x in self.Areas if x.mqtt_topic == p_topic), None)
+
     def getZone(self, id):
         return next((x for x in self.Zones if x.id == id), None)
+
     def getKeySwitch(self, id):
         return next((x for x in self.KeySwitches if x.id == id), None)
+
+    def getKeySwitchByMQTT(self, p_topic, p_direction, p_payload):
+        return next((x for x in self.KeySwitches if (x.mqtt_topic == p_topic and x.mqtt_direction == p_direction and x.mqtt_payload == p_payload) ), None)
+
 
 SLists = SystemLists()
 
@@ -363,11 +320,16 @@ class SystemEvent(object):
                if self.eventtype == 'Z':
                  self.__zone_obj = SLists.getZone(self.event)
 
-
                """ Keyswitch duomenys """
                if self.eventtype == 'K':
                    self.__keyswitch_obj = SLists.getKeySwitch(self.event)
 
+               if self.action:
+                   if self.action == 'Process_Utility_Key':
+                       if self.__keyswitch_obj.direction == 'OUT':
+                            comm.mqtt.publish(self.__keyswitch_obj.mqtt_topic + "/komanda",
+                                              self.__keyswitch_obj.payload,
+                                              p_retain=False)
 
              except sqlite.Error as e:
                raise TypeError("System event SQL error: %s:" % e.args[0])
@@ -409,26 +371,22 @@ class AreaEvent(object):
     self.call_str= None
     self.created= None
     self.desc= None
+    self.mode= None
 
     if EventStr[0:2] == 'RA' :
-        if len(EventStr) == 5 :
-            self.desc= 'Area request'
-        else :
-            raise TypeError("Area request event length must be 5 bytes")
+        self.desc= 'Area request'
     elif EventStr[0:2] == 'AD' :
-        if len(EventStr) == 5 :
-            self.desc= 'Area disarm'
-        else :
-            raise TypeError("Area disarm event length must be 5 bytes")
-    elif EventStr[0:2] == 'AA' :
-        if (len(EventStr) < 5) or (len(EventStr) > 6) :
-           raise TypeError("Area arm event length must be 5..6 bytes")
-        if len(EventStr) == 6 :
+        self.desc= 'Area disarm'
+        self.mode = 'D'
+    elif EventStr[0:2] == 'AA':
+        if len(EventStr) >= 6:
           if (EventStr[5:6] != 'F') \
             and (EventStr[5:6] != 'I') \
             and (EventStr[5:6] != 'S') \
-            and (EventStr[5:6] != 'A') :
-            raise TypeError("Area arm event must be F,I,S,A")
+            and (EventStr[5:6] != 'A'):
+            raise TypeError("Area arm mode must be F,I,S,A")
+          else:
+            self.mode = EventStr[5:6]
     else :
         raise TypeError("Area event should start with RA, AA, AD")
     try:
@@ -437,16 +395,17 @@ class AreaEvent(object):
        raise TypeError("Area Event conversion error - wrong area")
     if self.__area_id < 1 or self.__area_id > 4 :
        raise TypeError("Area Event error: area must be between 1..4")
-    self.call_str= EventStr
+    self.call_str= EventStr[0:5]
     self.created= datetime.now()
     self.area= SLists.getArea(self.__area_id)
+    """
     # Setting Instant arming in case unset
     if (EventStr[0:2] == 'AA') and (len(EventStr) == 5) :
         self.call_str = self.call_str + 'I'
     # Add password
     if (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
         self.call_str = self.call_str + COMMON_PANEL_PASSWORD
-        self.__mode= self.call_str[5:6]
+    """
 
   def answer(self, EventStr):
     if isinstance(EventStr, str):
@@ -466,7 +425,7 @@ class AreaEvent(object):
                   raise TypeError("Request event answer length must be 12 bytes")
           elif (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
               if EventStr[5:8] == '&ok' :
-                  self.area.update(self.__mode)
+                  self.area.update(self.mode)
               elif EventStr[5:10] != '&fail' :
                   raise TypeError("Area event answer AA or AD should end with &ok or &fail")
 
