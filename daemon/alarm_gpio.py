@@ -202,9 +202,9 @@ if __name__ == '__main__':
   threads.append(InputThread)
   InputThread = ReadInputThread("Vartai_telefonas", "gpio49", VartaiThread.event)
   threads.append(InputThread)
-  InputThread = ReadMQTTThread("Garazas_komanda_MQTT", "/namai/garazas/vartai/komanda", GarazasThread.event)
+  InputThread = ReadMQTTThread("Garazas_komanda_MQTT", "namai/garazas/vartai/komanda", GarazasThread.event)
   threads.append(InputThread)
-  InputThread = ReadMQTTThread("Vartai_komanda_MQTT", "/namai/kiemas/vartai/komanda", VartaiThread.event)
+  InputThread = ReadMQTTThread("Vartai_komanda_MQTT", "namai/kiemas/priekinis/vartai/komanda", VartaiThread.event)
   threads.append(InputThread)
 
   # Start new Threads
