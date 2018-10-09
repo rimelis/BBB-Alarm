@@ -51,6 +51,7 @@ class Area(object):
     self.last_refresh= None
     self.mqtt_topic= None
     self.mqtt_payload= None
+    self.zones_list= []
     self.load_from_db()
 
   def load_from_db(self):
@@ -66,6 +67,9 @@ class Area(object):
            self.status= self.__db_row['status']
            self.last_refresh= self.__db_row['last_refresh']
            self.mqtt_topic= self.__db_row['mqtt_topic']
+       del self.zones_list[:]
+       for self.__db_row in self.__db_cursor.execute("SELECT id FROM zones WHERE area_id = :id", {"id":self.id}):
+           self.zones_list.append(self.__db_row['id'])
      except sqlite.Error as e:
        raise TypeError("Area load SQL error: %s:" % e.args[0])
      finally:
@@ -146,6 +150,8 @@ class Area(object):
           self.__serialCommand = "AA{0:03d}I{1:s}".format(self.id, settings.COMMON_PANEL_PASSWORD)
       elif self.mqtt_payload == 'ARM_FORCE' :
           self.__serialCommand = "AA{0:03d}F{1:s}".format(self.id, settings.COMMON_PANEL_PASSWORD)
+      elif self.mqtt_payload == 'FULL_STATUS' :
+          print(self.zones_list)
       if self.__serialCommand :
         logger.debug("Process {0:s} area command : {1:s}".format(self.name, self.mqtt_payload))
         p_serial_queue.put(self.__serialCommand)
@@ -161,7 +167,6 @@ class Zone(object):
     self.status= None
     self.area_id= None
     self.last_refresh= None
-
     self.load_from_db()
   def load_from_db(self):
      try:
