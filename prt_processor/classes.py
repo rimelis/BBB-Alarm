@@ -150,13 +150,14 @@ class Area(object):
           self.__serialCommand = "AA{0:03d}I{1:s}".format(self.id, settings.COMMON_PANEL_PASSWORD)
       elif self.mqtt_payload == 'ARM_FORCE' :
           self.__serialCommand = "AA{0:03d}F{1:s}".format(self.id, settings.COMMON_PANEL_PASSWORD)
-      elif self.mqtt_payload == 'FULL_STATUS' :
-          print(self.zones_list)
       if self.__serialCommand :
         logger.debug("Process {0:s} area command : {1:s}".format(self.name, self.mqtt_payload))
         p_serial_queue.put(self.__serialCommand)
       else :
         logger.error("Unknown {0:s} area command : {1:s}".format(self.name, self.mqtt_payload))
+      if self.mqtt_payload == 'FULL_STATUS' :
+          for index in range(len(self.zones_list)) :
+              p_serial_queue.put("RZ{0:03d}".format(self.zones_list[index]))
 
 
 class Zone(object):
