@@ -167,6 +167,8 @@ class Zone(object):
     self.mode= None
     self.status= None
     self.area_id= None
+    self.mqtt_topic= None
+    self.mqtt_payload= None
     self.last_refresh= None
     self.load_from_db()
 
@@ -175,7 +177,7 @@ class Zone(object):
        self.__db_connection = sqlite.connect('db.sqlite')
        self.__db_connection.row_factory = sqlite.Row
        self.__db_cursor = self.__db_connection.cursor()
-       self.__db_cursor.execute("SELECT name, mode, status, area_id, last_refresh FROM zones WHERE id = :id", {"id":self.id})
+       self.__db_cursor.execute("SELECT name, mode, status, area_id, last_refresh, mqtt_topic FROM zones WHERE id = :id", {"id":self.id})
        self.__db_row = self.__db_cursor.fetchone()
        if self.__db_row:
            self.name= self.__db_row['name']
@@ -183,6 +185,7 @@ class Zone(object):
            self.status= self.__db_row['status']
            self.area_id= self.__db_row['area_id']
            self.last_refresh= self.__db_row['last_refresh']
+           self.mqtt_topic= self.__db_row['mqtt_topic']
      except sqlite.Error as e:
          raise TypeError("Zone load SQL error: %s:" % e.args[0])
      finally:
@@ -214,7 +217,38 @@ class Zone(object):
     finally:
         if self.__db_connection:
           self.__db_connection.close()
-
+    # Getting mode string
+    if self.mode == 'C' :
+        l_mode_str = 'Closed'
+    elif self.mode == 'O' :
+        l_mode_str = 'Open'
+    elif self.mode == 'T' :
+        l_mode_str = 'Tampered'
+    elif self.mode == 'F' :
+        l_mode_str = 'Fire loop trouble'
+    # Getting status string
+    if self.status == 'OOOO' :
+        l_status_list = ['Ready']
+    else :
+        l_status_list = []
+        if self.status[0:1] == 'A' :
+            l_status_list.append('In alarm')
+        if self.status[1:2] == 'F' :
+            l_status_list.append('Fire alarm')
+        if self.status[2:3] == 'S' :
+            l_status_list.append('Supervision lost')
+        if self.status[3:4] == 'L':
+            l_status_list.append('Low battery')
+    self.mqtt_payload = json.dumps(dict
+                              ([
+                                ("datetime", self.last_refresh.strftime("%Y-%m-%d %H:%M:%S")),
+                                ("mode_str", l_mode_str),
+                                ("status_str", '; '.join(l_status_list)),
+                                ("mode", self.mode),
+                                ("status", self.status),
+                               ])
+                              )
+    comm.mqtt.publish(self.mqtt_topic, self.mqtt_payload)
 
 
 class KeySwitch(object):
