@@ -188,8 +188,11 @@ class Zone(object):
         if self.__db_connection:
           self.__db_connection.close()
 
-  def update(self):
-     try:
+  def update(self, mode, status='0000'):
+    self.mode = mode
+    self.status = status
+    self.last_refresh = datetime.now()
+    try:
        self.__db_connection = sqlite.connect('db.sqlite')
        self.__db_connection.row_factory = sqlite.Row
        self.__db_cursor = self.__db_connection.cursor()
@@ -378,7 +381,6 @@ class AreaEvent(object):
     self.created= None
     self.desc= None
     self.mode= None
-
     if EventStr[0:2] == 'RA' :
         self.desc= 'Area request'
     elif EventStr[0:2] == 'AD' :
@@ -412,7 +414,6 @@ class AreaEvent(object):
     if (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
         self.call_str = self.call_str + COMMON_PANEL_PASSWORD
     """
-
   def answer(self, EventStr):
     if isinstance(EventStr, str):
       if (EventStr[0:2] == 'RA') or (EventStr[0:2] == 'AA') or (EventStr[0:2] == 'AD') :
@@ -445,6 +446,46 @@ class AreaEvent(object):
   def __del__(self):
     if self.call_str and self.created :
         logger.debug("Area event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.area.name))
+
+
+class ZoneEvent(object):
+  def __init__(self, EventStr):
+    self.call_str= None
+    self.created= None
+    self.desc= None
+    try:
+       self.__zone_id= int(EventStr[3:5])
+    except ValueError:
+       raise TypeError("Zone Event conversion error - wrong identificator")
+    if self.__zone_id < 1 or self.__zone_id > 48 :
+       raise TypeError("Zone Event error: area must be between 1..48")
+    self.call_str= EventStr[0:5]
+    self.created= datetime.now()
+    self.zone= SLists.getZone(self.__zone_id)
+  def answer(self, EventStr):
+    if isinstance(EventStr, str):
+      if EventStr[0:2] == 'RZ':
+          try:
+              self.__zone_id = int(EventStr[3:5])
+          except ValueError:
+              raise TypeError("Zone conversion error - wrong identificator")
+          if self.__zone_id < 1 or self.__zone_id > 48:
+              raise TypeError("Zone must be between 1..48")
+          if len(EventStr) == 10:
+             self.__mode= EventStr[5:6]
+             self.__status= EventStr[6:10]
+             self.zone.update(self.__mode, self.__status)
+          else :
+              raise TypeError("Zone event answer length must be 10 bytes")
+      else :
+          raise TypeError("Zone event answer should start with RZ")
+    else :
+      raise TypeError("Zone event should be string")
+  def __str__(self):
+    return "Zone event: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.zone.name)
+  def __del__(self):
+    if self.call_str and self.created :
+        logger.debug("Zone event initiator destroyed: {0:s} {1:%Y-%m-%d %H:%M:%S} - {2:s}".format(self.call_str, self.created, self.zone.name))
 
 
 class KeySwitchEvent(object):

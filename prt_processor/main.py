@@ -24,10 +24,11 @@ if __name__ == '__main__':
     logger.info("Initializing...")
 
     import comm
-    from classes import SystemEvent, AreaEvent, KeySwitchEvent
+    from classes import SystemEvent, AreaEvent, KeySwitchEvent, ZoneEvent
 
     serOutCommand= ''
 
+    RZList= []
     RAList= []
     AAList= []
     ADList= []
@@ -86,6 +87,28 @@ if __name__ == '__main__':
                                         logger.debug("Request Area answer {0:s} has not found the initiator!".format(instr))
                                   else :
                                       logger.debug("Wrong Request Area answer")
+                          except Exception as e:
+                              log_app_error(e)
+                      elif instr[0:2] == 'RZ' :
+                          try:
+                              if len(instr) == 5 :
+                                rz= next((x for x in RZList if x.call_str[0:5] == instr[0:5]), None)
+                                if not rz:
+                                    rz= ZoneEvent(instr)
+                                    RZList.append(rz)
+                                    logger.debug(rz)
+                              else :
+                                  if len(instr) == 10 :
+                                    rz= next((x for x in RZList if x.call_str[0:5] == instr[0:5]), None)
+                                    if rz:
+                                        logger.debug("Request zone answer received.")
+                                        rz.answer(instr)
+                                        RZList.remove(rz)
+                                        del rz
+                                    else :
+                                        logger.debug("Request zone answer {0:s} has not found the initiator!".format(instr))
+                                  else :
+                                      logger.debug("Wrong request zone answer")
                           except Exception as e:
                               log_app_error(e)
                       elif instr[0:2] == 'AA':
