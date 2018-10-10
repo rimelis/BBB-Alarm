@@ -169,6 +169,7 @@ class Zone(object):
     self.area_id= None
     self.last_refresh= None
     self.load_from_db()
+
   def load_from_db(self):
      try:
        self.__db_connection = sqlite.connect('db.sqlite')
@@ -206,11 +207,11 @@ class Zone(object):
               )
        if self.__db_cursor.rowcount == 0:
          raise TypeError("Zone '{0:s}' update: no DB record found".format(self.name))
-     except sqlite.Error as e:
+    except sqlite.Error as e:
        if self.__db_connection:
          self.__db_connection.rollback()
        raise TypeError("Zone {0:s}' update SQL error: %s:" % e.args[0].format(self.name))
-     finally:
+    finally:
         if self.__db_connection:
           self.__db_connection.close()
 
