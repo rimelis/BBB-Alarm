@@ -253,7 +253,7 @@ class KeySwitch(object):
 
 class SystemLists(object):
     def __init__(self):
-        self.Zones = [Zone(x) for x in range(48)]
+        self.Zones = [Zone(x) for x in range(49)]
         self.Areas = [Area(x) for x in range(5)]
         self.KeySwitches = [KeySwitch(x) for x in range(8)]
 

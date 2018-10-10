@@ -190,6 +190,9 @@ if __name__ == '__main__':
             while len(RAList) > 0 :
                 ra= RAList.pop()
                 del ra
+            while len(RZList) > 0 :
+                rz= RZList.pop()
+                del rz
             while len(AAList) > 0 :
                 aa= AAList.pop()
                 del aa
