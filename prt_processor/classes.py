@@ -132,7 +132,7 @@ class Area(object):
             l_status_list.append('In alarm')
         if self.status[5:6] == 'S':
             l_status_list.append('Strobe')
-    print(type(self.last_change))
+    print(type(self.last_change), self.last_change)
     self.mqtt_payload = json.dumps(dict
                               ([
                                 ("last_refresh_dt", self.last_refresh.strftime("%Y-%m-%d %H:%M:%S")),
