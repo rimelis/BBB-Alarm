@@ -80,9 +80,8 @@ class Area(object):
 
   def update(self, mode, status='OOOOOO'):
     self.last_refresh = datetime.now()
-    if self.mode != mode or self.status != status:
-        self.last_change = datetime.now()
-        print("changed")
+#    if self.mode != mode or self.status != status:
+    self.last_change = datetime.now()
     self.mode = mode
     self.status = status
     try:
