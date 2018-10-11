@@ -163,7 +163,7 @@ class Area(object):
       if self.mqtt_payload == 'FULL_STATUS' :
           for index in range(len(self.zones_list)) :
               p_serial_queue.put("RZ{0:03d}".format(self.zones_list[index]))
-          self.__serialCommand = "RA{0:03d}".format(self.id)
+          p_serial_queue.put("RA{0:03d}".format(self.id))
 
 
 class Zone(object):
