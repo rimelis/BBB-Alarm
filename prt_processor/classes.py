@@ -49,6 +49,7 @@ class Area(object):
     self.mode= None
     self.status= None
     self.last_refresh= None
+    self.last_change= None
     self.mqtt_topic= None
     self.mqtt_payload= None
     self.zones_list= []
@@ -66,6 +67,7 @@ class Area(object):
            self.mode= self.__db_row['mode']
            self.status= self.__db_row['status']
            self.last_refresh= self.__db_row['last_refresh']
+           self.last_change= self.last_refresh
            self.mqtt_topic= self.__db_row['mqtt_topic']
        del self.zones_list[:]
        for self.__db_row in self.__db_cursor.execute("SELECT id FROM zones WHERE area_id = :id", {"id":self.id}):
@@ -77,9 +79,11 @@ class Area(object):
           self.__db_connection.close()
 
   def update(self, mode, status='OOOOOO'):
+    self.last_refresh = datetime.now()
+    if self.mode != mode or self.status != status:
+        self.last_change= self.last_refresh
     self.mode = mode
     self.status = status
-    self.last_refresh = datetime.now()
     try:
        self.__db_connection = sqlite.connect('db.sqlite')
        self.__db_cursor = self.__db_connection.cursor()
@@ -130,7 +134,8 @@ class Area(object):
             l_status_list.append('Strobe')
     self.mqtt_payload = json.dumps(dict
                               ([
-                                ("datetime", self.last_refresh.strftime("%Y-%m-%d %H:%M:%S")),
+                                ("last_refresh_dt", self.last_refresh.strftime("%Y-%m-%d %H:%M:%S")),
+                                ("last_change_dt", self.last_change.strftime("%Y-%m-%d %H:%M:%S")),
                                 ("mode_str", l_mode_str),
                                 ("status_str", '; '.join(l_status_list)),
                                 ("mode", self.mode),
@@ -158,6 +163,7 @@ class Area(object):
       if self.mqtt_payload == 'FULL_STATUS' :
           for index in range(len(self.zones_list)) :
               p_serial_queue.put("RZ{0:03d}".format(self.zones_list[index]))
+          self.__serialCommand = "RA{0:03d}".format(self.id)
 
 
 class Zone(object):
