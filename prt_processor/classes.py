@@ -66,7 +66,7 @@ class Area(object):
            self.name= self.__db_row['name']
            self.mode= self.__db_row['mode']
            self.status= self.__db_row['status']
-           self.last_refresh= datetime.strptime(self.__db_row['last_refresh'], '%Y-%m-%d %T.%f') #2018-10-11 17:30:40.214852
+           self.last_refresh= datetime.strptime(self.__db_row['last_refresh'], '%Y-%m-%d %H:%M:%S.%f') #2018-10-11 17:30:40.214852
            self.last_change= self.last_refresh
            self.mqtt_topic= self.__db_row['mqtt_topic']
        del self.zones_list[:]
