@@ -66,7 +66,7 @@ class Area(object):
            self.name= self.__db_row['name']
            self.mode= self.__db_row['mode']
            self.status= self.__db_row['status']
-           self.last_refresh= self.__db_row['last_refresh']
+           self.last_refresh= datetime.strptime(self.__db_row['last_refresh'], '%Y-%m-%d %T.%f') #2018-10-11 17:30:40.214852
            self.last_change= self.last_refresh
            self.mqtt_topic= self.__db_row['mqtt_topic']
        del self.zones_list[:]
@@ -184,14 +184,14 @@ class Zone(object):
        self.__db_connection = sqlite.connect('db.sqlite', detect_types=sqlite.PARSE_DECLTYPES|sqlite.PARSE_COLNAMES)
        self.__db_connection.row_factory = sqlite.Row
        self.__db_cursor = self.__db_connection.cursor()
-       self.__db_cursor.execute('SELECT name, mode, status, area_id, last_refresh as "last_refresh [timestamp]" , mqtt_topic FROM zones WHERE id = :id', {"id":self.id})
+       self.__db_cursor.execute('SELECT name, mode, status, area_id, last_refresh, mqtt_topic FROM zones WHERE id = :id', {"id":self.id})
        self.__db_row = self.__db_cursor.fetchone()
        if self.__db_row:
            self.name= self.__db_row['name']
            self.mode= self.__db_row['mode']
            self.status= self.__db_row['status']
            self.area_id= self.__db_row['area_id']
-           self.last_refresh= self.__db_row['last_refresh']
+           self.last_refresh= self.__db_row['last_refresh'],
            self.mqtt_topic= self.__db_row['mqtt_topic']
      except sqlite.Error as e:
          raise TypeError("Zone load SQL error: %s:" % e.args[0])
