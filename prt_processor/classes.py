@@ -55,6 +55,8 @@ class Area(object):
     self.zones_list= []
     self.load_from_db()
 
+    self.__serial_queue = comm.SerialOutQueue
+
   def load_from_db(self):
      try:
        self.__db_connection = sqlite.connect('db.sqlite')
@@ -145,7 +147,8 @@ class Area(object):
                               )
     comm.mqtt.publish(self.mqtt_topic, self.mqtt_payload)
 
-  def processCommand(self, p_serial_queue, p_mqtt_command):
+#  def processCommand(self, p_serial_queue, p_mqtt_command):
+  def processCommand(self, p_mqtt_command):
       self.__serialCommand = None
       self.mqtt_payload = p_mqtt_command
       if self.mqtt_payload == 'STATUS' :
@@ -158,13 +161,16 @@ class Area(object):
           self.__serialCommand = "AA{0:03d}F{1:s}".format(self.id, settings.COMMON_PANEL_PASSWORD)
       if self.__serialCommand :
         logger.debug("Process {0:s} area command : {1:s}".format(self.name, self.mqtt_payload))
-        p_serial_queue.put(self.__serialCommand)
+#        p_serial_queue.put(self.__serialCommand)
+        self.__serial_queue.put(self.__serialCommand)
       else :
         logger.error("Unknown {0:s} area command : {1:s}".format(self.name, self.mqtt_payload))
       if self.mqtt_payload == 'FULL_STATUS' :
           for index in range(len(self.zones_list)) :
-              p_serial_queue.put("RZ{0:03d}".format(self.zones_list[index]))
-          p_serial_queue.put("RA{0:03d}".format(self.id))
+#              p_serial_queue.put("RZ{0:03d}".format(self.zones_list[index]))
+              self.__serial_queue.put("RZ{0:03d}".format(self.zones_list[index]))
+          self.__serial_queue.put("RA{0:03d}".format(self.id))
+#          p_serial_queue.put("RA{0:03d}".format(self.id))
 
 
 class Zone(object):

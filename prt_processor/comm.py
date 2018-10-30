@@ -53,7 +53,8 @@ class MQTTClient(object):
         self.__area_obj = None
         self.__area_obj = SLists.getAreaByMQTT(self.__topic.replace('/komanda', ''))
         if self.__area_obj :
-            self.__area_obj.processCommand(self.__serial_queue, self.__payload)
+#            self.__area_obj.processCommand(self.__serial_queue, self.__payload)
+            self.__area_obj.processCommand(self.__payload)
 
 
   def OnDisconnect(self, p_client, p_userdata, p_rc):
@@ -99,7 +100,7 @@ class MQTTClient(object):
         logger.critical("MQTT CONN Timeout!")
     except Exception as e:
         log_app_error(e)
-    self.__serial_queue= SerialOutQueue
+    # self.__serial_queue= SerialOutQueue
 
   def __del__(self):
       if self.isConnected:
