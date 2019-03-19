@@ -54,6 +54,8 @@ class Area(object):
     self.mqtt_payload= None
     self.zones_list= []
     self.load_from_db()
+    self.__serial_queue = comm.SerialOutQueue
+#    self.request_full_status()
 
   def load_from_db(self):
      try:
@@ -132,7 +134,6 @@ class Area(object):
             l_status_list.append('In alarm')
         if self.status[5:6] == 'S':
             l_status_list.append('Strobe')
-    print(type(self.last_change), self.last_change)
     self.mqtt_payload = json.dumps(dict
                               ([
                                 ("last_refresh_dt", self.last_refresh.strftime("%Y-%m-%d %H:%M:%S")),
@@ -145,7 +146,7 @@ class Area(object):
                               )
     comm.mqtt.publish(self.mqtt_topic, self.mqtt_payload)
 
-  def processCommand(self, p_serial_queue, p_mqtt_command):
+  def processCommand(self, p_mqtt_command):
       self.__serialCommand = None
       self.mqtt_payload = p_mqtt_command
       if self.mqtt_payload == 'STATUS' :
@@ -156,15 +157,21 @@ class Area(object):
           self.__serialCommand = "AA{0:03d}I{1:s}".format(self.id, settings.COMMON_PANEL_PASSWORD)
       elif self.mqtt_payload == 'ARM_FORCE' :
           self.__serialCommand = "AA{0:03d}F{1:s}".format(self.id, settings.COMMON_PANEL_PASSWORD)
-      if self.__serialCommand :
-        logger.debug("Process {0:s} area command : {1:s}".format(self.name, self.mqtt_payload))
-        p_serial_queue.put(self.__serialCommand)
-      else :
-        logger.error("Unknown {0:s} area command : {1:s}".format(self.name, self.mqtt_payload))
-      if self.mqtt_payload == 'FULL_STATUS' :
+      elif self.mqtt_payload == 'FULL_STATUS' :
           for index in range(len(self.zones_list)) :
-              p_serial_queue.put("RZ{0:03d}".format(self.zones_list[index]))
-          p_serial_queue.put("RA{0:03d}".format(self.id))
+              self.__serial_queue.put("RZ{0:03d}".format(self.zones_list[index]))
+          self.__serialCommand = "RA{0:03d}".format(self.id)
+      if self.__serialCommand :
+          logger.debug("Process {0:s} area command : {1:s}".format(self.name, self.mqtt_payload))
+          self.__serial_queue.put(self.__serialCommand)
+      else :
+          logger.error("Unknown {0:s} area command : {1:s}".format(self.name, self.mqtt_payload))
+
+  def request_status(self):
+       self.processCommand('STATUS')
+
+  def request_full_status(self):
+       self.processCommand('FULL_STATUS')
 
 
 class Zone(object):
@@ -178,6 +185,7 @@ class Zone(object):
     self.mqtt_payload= None
     self.last_refresh= None
     self.load_from_db()
+    self.__serial_queue = comm.SerialOutQueue
 
   def load_from_db(self):
      try:
@@ -257,6 +265,38 @@ class Zone(object):
                               )
     comm.mqtt.publish(self.mqtt_topic, self.mqtt_payload)
 
+  def request_status(self):
+      self.__serialCommand = "RZ{0:03d}".format(self.id)
+      logger.debug("Zone {0:s} status request.".format(self.name))
+      self.__serial_queue.put(self.__serialCommand)
+
+  def set_ready(self):
+      self.update('C')
+
+  def set_open(self):
+      self.update('O', self.status)
+
+  def set_tampered(self):
+      self.update('T', self.status)
+
+  def set_fire_loop_trouble(self):
+      self.update('F', self.status)
+
+  def alarm(self, set=False):
+      if set:
+          self.status[0:1] = 'A'
+      else:
+          self.status[0:1] = 'O'
+      self.update(self.mode, self.status)
+
+  def fire_alarm(self, set=False):
+      if set:
+          self.status[1:2] = 'F'
+      else:
+          self.status[1:2] = 'O'
+      self.update(self.mode, self.status)
+
+
 
 class KeySwitch(object):
     def __init__(self, id):
@@ -265,6 +305,7 @@ class KeySwitch(object):
         self.mqtt_topic= None
         self.mqtt_payload= None
         self.mqtt_direction= None
+        self.__serial_queue = comm.SerialOutQueue
         try:
             self.__db_connection = sqlite.connect('db.sqlite')
             self.__db_connection.row_factory = sqlite.Row
@@ -283,9 +324,9 @@ class KeySwitch(object):
             if self.__db_connection:
                 self.__db_connection.close()
 
-    def trigger(self, p_serial_queue):
+    def trigger(self):
         logger.debug("Triggering keyswitch: {0:s} ({1:03d})".format(self.name, self.id))
-        p_serial_queue.put("UK{0:03d}".format(self.id))
+        self.__serial_queue.put("UK{0:03d}".format(self.id))
 
     def __str__(self):
         return "Keyswitch: {0:s} ({1:03d})".format(self.name, self.id)
@@ -294,9 +335,9 @@ class KeySwitch(object):
 
 class SystemLists(object):
     def __init__(self):
-        self.Zones = [Zone(x) for x in range(49)]
-        self.Areas = [Area(x) for x in range(5)]
-        self.KeySwitches = [KeySwitch(x) for x in range(8)]
+        self.Zones = [Zone(x) for x in range(1,49)]
+        self.Areas = [Area(x) for x in range(1,5)]
+        self.KeySwitches = [KeySwitch(x) for x in range(1,9)]
 
     def getArea(self, id):
         return next((x for x in self.Areas if x.id == id), None)
@@ -366,10 +407,31 @@ class SystemEvent(object):
                  self.__area_obj = SLists.getArea(self.area)
                  if self.__area_obj:
                      self.area_desc= self.__area_obj.name
+                     if self.action in ['Area_Refresh', 'Arm', 'Disarm', 'User_Alarm']:
+                         self.__area_obj.request_status()
 
                """ Zonos duomenys """
                if self.eventtype == 'Z':
                  self.__zone_obj = SLists.getZone(self.event)
+                 if self.action == 'Set_Ready':
+                     self.__zone_obj.set_ready()
+                 elif self.action == 'Set_Open':
+                     self.__zone_obj.set_open()
+                 elif self.action == 'Set_Tampered':
+                     self.__zone_obj.set_tampered()
+                 elif self.action == 'Set_Fire_Loop':
+                     self.__zone_obj.set_fire_loop_trouble()
+                 elif self.action == 'Set_Alarm':
+                     self.__zone_obj.alarm(True)
+                 elif self.action == 'Clear_Alarm':
+                     self.__zone_obj.alarm(False)
+                 elif self.action == 'Set_Fire_Alarm':
+                     self.__zone_obj.fire_alarm(True)
+                 elif self.action == 'Clear_Fire_Alarm':
+                     self.__zone_obj.fire_alarm(False)
+                 elif self.action == 'Clear_Tampered':
+                     self.__zone_obj.request_status()
+                 self.__area_obj.request_status()
 
                """ Keyswitch duomenys """
                if self.eventtype == 'K':
@@ -381,7 +443,6 @@ class SystemEvent(object):
                             comm.mqtt.publish(self.__keyswitch_obj.mqtt_topic + "/komanda",
                                               self.__keyswitch_obj.mqtt_payload,
                                               p_retain=False)
-
              except sqlite.Error as e:
                raise TypeError("System event SQL error: %s:" % e.args[0])
              finally:

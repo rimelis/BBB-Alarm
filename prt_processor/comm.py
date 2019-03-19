@@ -5,6 +5,10 @@ import queue
 import sqlite3 as sqlite
 import time
 import settings
+
+# Global serial queue
+SerialOutQueue = queue.Queue()
+
 from classes import SLists
 
 logger= settings.logger
@@ -37,6 +41,11 @@ class MQTTClient(object):
         finally:
             if self.__db_connection:
                 self.__db_connection.close()
+        # set the topic of connection status
+        self.__client.publish(topic=settings.MQTT_BROKER_STATUS_TOPIC, payload='online', retain=True)
+        # Refresh full status
+        for areas in SLists.Areas:
+            areas.request_full_status()
     else:
         logger.error("Connection to MQTT failed!")
 
@@ -48,13 +57,13 @@ class MQTTClient(object):
     self.__keyswitch_obj = None
     self.__keyswitch_obj = SLists.getKeySwitchByMQTT(self.__topic.replace('/komanda', ''), 'IN', self.__payload)
     if self.__keyswitch_obj :
-        self.__keyswitch_obj.trigger(self.__serial_queue)
+        self.__keyswitch_obj.trigger()
     else : # searching for area
         self.__area_obj = None
         self.__area_obj = SLists.getAreaByMQTT(self.__topic.replace('/komanda', ''))
         if self.__area_obj :
-            self.__area_obj.processCommand(self.__serial_queue, self.__payload)
-
+#            self.__area_obj.processCommand(self.__serial_queue, self.__payload)
+            self.__area_obj.processCommand(self.__payload)
 
   def OnDisconnect(self, p_client, p_userdata, p_rc):
       if p_rc != 0:
@@ -79,6 +88,11 @@ class MQTTClient(object):
           except TimeoutError:
               logger.critical("MQTT CONN Timeout!")
 
+  def disconnect(self):
+    if self.isConnected:
+        self.publish(settings.MQTT_BROKER_STATUS_TOPIC, 'offline')
+        self.__client.disconnect()
+
   def subscribe(self, p_topic):
       self.__client.subscribe(p_topic)
       logger.info("MQTT SUB: > " + p_topic)
@@ -90,6 +104,8 @@ class MQTTClient(object):
     self.__client.on_connect = self.OnConnect
     self.__client.on_message = self.OnMessage
     self.__client.on_disconnect = self.OnDisconnect
+    self.__client.will_set(topic=settings.MQTT_BROKER_STATUS_TOPIC, payload='offline', retain=True)
+    logger.info("MQTT LWM: > " + settings.MQTT_BROKER_STATUS_TOPIC)
     self.isConnected= False
     try:
         self.__client.connect(p_broker_address, port=p_broker_port, keepalive=10)
@@ -99,16 +115,15 @@ class MQTTClient(object):
         logger.critical("MQTT CONN Timeout!")
     except Exception as e:
         log_app_error(e)
-    self.__serial_queue= SerialOutQueue
+#    self.__serial_queue= SerialOutQueue
 
-  def __del__(self):
-      if self.isConnected:
-          self.__client.disconnect()
-      logger.debug('MQTT STOP')
+#  def __del__(self):
+#      if self.isConnected:
+#          self.__client.disconnect()
+#      logger.debug('MQTT STOP')
 
 
-# Global MQTT and Serial output queue
-SerialOutQueue = queue.Queue()
+# Global MQTT
 
 mqtt = MQTTClient(settings.MQTT_BROKER_ADDRESS,
                   settings.MQTT_BROKER_PORT,
